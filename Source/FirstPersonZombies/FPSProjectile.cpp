@@ -76,12 +76,15 @@ void AFPSProjectile::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor*
 	if ((OtherActor != nullptr) && (OtherActor != this) && (OtherComp != nullptr))
 	{
 		if (OtherActor->IsA(AFPSZombie::StaticClass())) {
+			AFPSZombie* zombie = (AFPSZombie*)OtherActor;
 			
 			if (SweepResult.BoneName == FName(TEXT("Head"))) 
 			{
 				if (GEngine) {
 					GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Yellow, TEXT("boop"));
 				}
+
+				zombie->HP = 0;
 			}
 
 			//"FRotator rotPelvis = Mesh->MeshGetInstance(this))->GetBoneRotation(FName(TEXT("pelvis")));"
