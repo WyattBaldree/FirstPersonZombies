@@ -90,10 +90,6 @@ void AFPSCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompon
 	PlayerInputComponent->BindAction("Jump", IE_Released, this, &AFPSCharacter::StopJump);
 
 	PlayerInputComponent->BindAction("Fire", IE_Pressed, this, &AFPSCharacter::Fire);
-
-
-	//PlayerInputComponent->BindAxis("Turn", this, &APawn::AddControllerYawInput);
-	//PlayerInputComponent->BindAxis("LookUp", this, &APawn::AddControllerPitchInput);
 }
 
 void AFPSCharacter::MoveForward(float Value)
@@ -133,9 +129,6 @@ void AFPSCharacter::Fire()
 		
 		if (AnimInstance)
 		{
-			if (GEngine) {
-				GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Yellow, TEXT("boop"));
-			}
 			AnimInstance->PlaySlotAnimationAsDynamicMontage(FireAnimation, "Arms", 0.0f);
 		}
 	}
@@ -171,7 +164,7 @@ void AFPSCharacter::Fire()
 		GetActorEyesViewPoint(CameraLocation, CameraRotation);
 
 		//Trnasform MuzzleOffet from camera space to world space
-		FVector MuzzleLocation = location + FTransform(direction.Rotation()).TransformVector(MuzzleOffset);// <- here we get the camera position and add the local muzzle value to get a world value for the muzzle
+		FVector MuzzleLocation = location;// +FTransform(direction.Rotation()).TransformVector(MuzzleOffset);// <- here we get the camera position and add the local muzzle value to get a world value for the muzzle
 		FRotator MuzzleRotation = direction.Rotation();
 		// skew to point slightly upward
 		//MuzzleRotation.Pitch += 10.0f;
