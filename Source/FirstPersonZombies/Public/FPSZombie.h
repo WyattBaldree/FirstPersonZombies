@@ -29,4 +29,7 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Gameplay")
 	float MaxHP = 100;
 	float HP = MaxHP;
+
+	UFUNCTION()
+	bool Hurt(float Damage, bool Headshot);
 };
