@@ -41,9 +41,17 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Gameplay")
 	UAnimSequence* FireAnimation;
 
+	/** AnimMontage to play each time we reload */
+	UPROPERTY(EditDefaultsOnly, Category = "Gameplay")
+	UAnimSequence* ReloadAnimation;
+
 	/** Sound to play each time we fire */
 	UPROPERTY(EditDefaultsOnly, Category = "Gameplay")
 	USoundBase* FireSound;
+
+	/** Sound to play each time we fire */
+	UPROPERTY(EditDefaultsOnly, Category = "Gameplay")
+	USoundBase* ReloadSound;
 
 public:	
 	// Called every frame
@@ -65,4 +73,9 @@ public:
 	
 	UFUNCTION()
 	void Fire();
+
+	UFUNCTION()
+	void Reload();
+
+	bool Reloading;
 };

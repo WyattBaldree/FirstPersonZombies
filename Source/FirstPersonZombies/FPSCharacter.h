@@ -59,6 +59,9 @@ public:
 	UFUNCTION()
 	void Fire();
 
+	UFUNCTION()
+	void Reload();
+
 	AWeapon* HeldWeapon;
 
 	UFUNCTION(BlueprintCallable)

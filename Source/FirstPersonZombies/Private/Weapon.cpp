@@ -29,16 +29,21 @@ void AWeapon::BeginPlay()
 
 void AWeapon::Fire()
 {
+	// Get the animation object for the arms mesh
+	UAnimInstance* AnimInstance = GunMesh->GetAnimInstance();
+
+	if (Reloading) Reloading = false;
+
+	AnimInstance->StopSlotAnimation(0, "Arms");
+
 	if (magazine_current <= 0) {
+		Reload();
 		return;
 	}
 
 	// try and play a firing animation if specified
 	if (FireAnimation)
 	{
-		// Get the animation object for the arms mesh
-		UAnimInstance* AnimInstance = GunMesh->GetAnimInstance();
-
 		if (AnimInstance)
 		{
 			AnimInstance->PlaySlotAnimationAsDynamicMontage(FireAnimation, "Arms", 0.0f);
@@ -87,10 +92,34 @@ void AWeapon::Fire()
 			{
 				FVector LaunchDirection = MuzzleRotation.Vector();
 				Projectile->FireInDirection(LaunchDirection);
+				magazine_current--;
 			}
 		}
 
 	}
+}
+
+void AWeapon::Reload()
+{
+	// try to play the reload sound effect
+	if (ReloadSound)
+	{
+		UGameplayStatics::PlaySoundAtLocation(this, ReloadSound, GetActorLocation());
+	}
+
+	// try and play a firing animation if specified
+	if (ReloadAnimation)
+	{
+		// Get the animation object for the arms mesh
+		UAnimInstance* AnimInstance = GunMesh->GetAnimInstance();
+
+		if (AnimInstance)
+		{
+			AnimInstance->PlaySlotAnimationAsDynamicMontage(ReloadAnimation, "Arms", 0.0f);
+		}
+	}
+
+	Reloading = true;
 }
 
 // Called every frame
