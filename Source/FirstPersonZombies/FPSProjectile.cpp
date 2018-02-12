@@ -31,9 +31,6 @@ AFPSProjectile::AFPSProjectile()
 	ProjectileMovementComponent->InitialSpeed = 3000.0f;
 	ProjectileMovementComponent->MaxSpeed = 3000.0f;
 	ProjectileMovementComponent->bRotationFollowsVelocity = true;
-	ProjectileMovementComponent->bShouldBounce = true;
-	ProjectileMovementComponent->Bounciness = 0.3f;
-
 }
 
 // Called when the game starts or when spawned
@@ -75,16 +72,33 @@ void AFPSProjectile::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor*
 	// Other Actor is the actor that triggered the event. Check that is not ourself.  
 	if ((OtherActor != nullptr) && (OtherActor != this) && (OtherComp != nullptr))
 	{
+		int i = 0;
+		for (i = 0; i < hitlength; i++) {
+			if (hitlist[i] == OtherActor) {
+				return;
+			}
+		}
+		if (hitlength < 20) {
+			hitlist[hitlength] = OtherActor;
+			hitlength++;
+		}
+
 		if (OtherActor->IsA(AFPSZombie::StaticClass())) {
-			
+			AFPSZombie* zombie = (AFPSZombie*)OtherActor;
+
+
+			bool headhit = false;
 			if (SweepResult.BoneName == FName(TEXT("Head"))) 
 			{
 				if (GEngine) {
-					GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Yellow, TEXT("boop"));
+					GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Red, TEXT("Headshot!"));
 				}
+				headhit = true;
 			}
+			zombie->Hurt(Damage, headhit);
 
 			//"FRotator rotPelvis = Mesh->MeshGetInstance(this))->GetBoneRotation(FName(TEXT("pelvis")));"
 		}
 	}
+	if (hitlength >= Pierce) Destroy();
 }

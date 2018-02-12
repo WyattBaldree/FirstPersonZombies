@@ -4,7 +4,9 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
+#include "Weapon.h"
 #include "FPSCharacter.generated.h"
+
 
 class UInputComponent;
 class UCameraComponent;
@@ -27,24 +29,9 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera")
 	UCameraComponent* FPSCameraComponent;
 
-	// First PErson mesh (arms), visible only to owning player
-	UPROPERTY(VisibleDefaultsOnly, Category = "Mesh")
-	USkeletalMeshComponent* FPSMesh;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Gameplay")
-	FVector MuzzleOffset;
-
-	// Projectile class to spawn.
-	UPROPERTY(EditDefaultsOnly, Category = "Gameplay")
-	TSubclassOf<class AFPSProjectile> ProjectileClass;
-
-	/** AnimMontage to play each time we fire */
-	UPROPERTY(EditDefaultsOnly, Category = "Gameplay")
-	UAnimSequence* FireAnimation;
-
 	/** Sound to play each time we fire */
-	UPROPERTY(EditDefaultsOnly, Category = "Gameplay")
-	USoundBase* FireSound;
+	UPROPERTY(EditAnywhere, Category = "Gameplay")
+	TSubclassOf<class AWeapon> StartingWeapon;
 
 public:	
 	// Called every frame
@@ -72,20 +59,13 @@ public:
 	UFUNCTION()
 	void Fire();
 
-	bool bFiring;
+	UFUNCTION()
+	void Reload();
 
-	UPROPERTY()
-	int MaxAmmo = 11;
-	int CurrentAmmo = MaxAmmo;
-
-
-	bool AnimStartFiring = false;
+	AWeapon* HeldWeapon;
 
 	UFUNCTION(BlueprintCallable)
-	bool GetAnimStartFiring();
-
-	UFUNCTION(BlueprintCallable)
-	void SetAnimStartFiring(bool b);
+	void EquipWeapon(AWeapon* weapon);
 
 	
 };
