@@ -58,15 +58,14 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 	UPROPERTY(EditAnywhere, Category = "Weapon")
-	int magazine_size = 11;
+	int MagazineMax = 7;
 
 	UPROPERTY(EditAnywhere, Category = "Weapon")
-	int magazine_max = 7;
+	float ShootInterval = 1.0;
 
-	UPROPERTY(EditAnywhere, Category = "Weapon")
-	float shoot_interval = 1.0;
+	float ShootIntervalCurrent = ShootInterval;
 
-	int magazine_current = magazine_size;
+	int MagazineCurrent = MagazineMax;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Gameplay")
 	FVector GunOffset;
@@ -78,4 +77,9 @@ public:
 	void Reload();
 
 	bool Reloading;
+
+	UPROPERTY(EditAnywhere)
+	float ReloadTime = 2.0;
+
+	float ReloadTimeCurrent = 0;
 };
