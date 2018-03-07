@@ -26,6 +26,13 @@ protected:
 	UPROPERTY(VisibleDefaultsOnly, Category = "Projectile")
 	USphereComponent* CollisionComponent;
 
+	UPROPERTY(EditAnywhere, Category = "Projectile")
+	float Damage = 12.5f;
+
+	// Sphere collision component
+	UPROPERTY(EditAnywhere, Category = "Projectile")
+	int Pierce = 3;
+
 	// Projectile Movement Component
 	UPROPERTY(VisibleAnywhere, Category = "Movement")
 	UProjectileMovementComponent* ProjectileMovementComponent;
@@ -43,4 +50,7 @@ public:
 	// sweg
 	UFUNCTION()
 	void OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+
+	AActor* hitlist[10];
+	int hitlength = 0;
 };

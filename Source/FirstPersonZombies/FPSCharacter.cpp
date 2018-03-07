@@ -14,9 +14,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "Animation/AnimInstance.h"
 #include "GameFramework/PlayerController.h"
-
-
-
+#include "Engine/EngineTypes.h"
 
 // Sets default values
 AFPSCharacter::AFPSCharacter()
@@ -35,16 +33,6 @@ AFPSCharacter::AFPSCharacter()
 	
 	// The owning player doesn't see the regular (third-person) body mesh.
 	GetMesh()->SetOwnerNoSee(true);
-
-	// Create a first person mesh component for the owning player.
-	FPSMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("FirstPersonMesh"));
-	// Only the owning player sees this mesh.
-	FPSMesh->SetOnlyOwnerSee(true);
-	// Attach the FPS mesh to the FPS camera.
-	FPSMesh->SetupAttachment(FPSCameraComponent);
-	// Disable some environmental shadowing to preserve the illusion of having a single mesh.
-	FPSMesh->bCastDynamicShadow = false;
-	FPSMesh->CastShadow = false;
 }
 
 // Called when the game starts or when spawned
@@ -56,15 +44,32 @@ void AFPSCharacter::BeginPlay()
 		// Put up a debug message for five seconds. The -1 "Key" value (first argument) indicates that we will never need to update or refresh this message.
 		GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Red, TEXT("We are using FPSCharacter."));
 	}
+
+	if (StartingWeapon) {
+		UWorld* World = GetWorld();
+
+		FActorSpawnParameters SpawnParams;
+		SpawnParams.Owner = this;
+		SpawnParams.Instigator = Instigator;
+		AWeapon* weapon = World->SpawnActor<AWeapon>(StartingWeapon, FVector(0, 0, 0), FRotator(1, 1, 1), SpawnParams);
+		EquipWeapon(weapon);
+	}
 }
 
-bool AFPSCharacter::GetAnimStartFiring()
+void AFPSCharacter::EquipWeapon(AWeapon* weapon)
 {
-	return AnimStartFiring;
-}
+	if (weapon) {
+		HeldWeapon = weapon;
 
-void AFPSCharacter::SetAnimStartFiring(bool b) {
-	AnimStartFiring = b;
+		FVector CameraLocation;
+		FRotator CameraRotation;
+		GetActorEyesViewPoint(CameraLocation, CameraRotation);
+
+		HeldWeapon->SetActorLocation(CameraLocation + FTransform(CameraRotation).TransformVector(HeldWeapon->GunOffset));
+
+
+		HeldWeapon->AttachToComponent(FPSCameraComponent, FAttachmentTransformRules::KeepWorldTransform);
+	}
 }
 
 // Called every frame
@@ -90,6 +95,7 @@ void AFPSCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompon
 	PlayerInputComponent->BindAction("Jump", IE_Released, this, &AFPSCharacter::StopJump);
 
 	PlayerInputComponent->BindAction("Fire", IE_Pressed, this, &AFPSCharacter::Fire);
+	PlayerInputComponent->BindAction("Reload", IE_Pressed, this, &AFPSCharacter::Reload);
 }
 
 void AFPSCharacter::MoveForward(float Value)
@@ -115,75 +121,10 @@ void AFPSCharacter::StopJump() {
 
 void AFPSCharacter::Fire()
 {
-	if (CurrentAmmo <= 0) {
-		return;
-	}
+	HeldWeapon->Fire();
+}
 
-	AnimStartFiring = true;
-
-	// try and play a firing animation if specified
-	if (FireAnimation)
-	{
-		// Get the animation object for the arms mesh
-		UAnimInstance* AnimInstance = FPSMesh->GetAnimInstance();
-		
-		if (AnimInstance)
-		{
-			AnimInstance->PlaySlotAnimationAsDynamicMontage(FireAnimation, "Arms", 0.0f);
-		}
-	}
-
-	// try and play the sound if specified
-	if (FireSound)
-	{
-		UGameplayStatics::PlaySoundAtLocation(this, FireSound, GetActorLocation());
-	}
-
-	// Attempt to fire a projectile.
-	if (ProjectileClass)
-	{
-		APlayerController* PlayerController = UGameplayStatics::GetPlayerController(GetWorld(), 0);
-
-		FVector location;
-		FVector direction;
-
-		FVector2D ViewportSize = FVector2D(GEngine->GameViewport->Viewport->GetSizeXY());
-		FVector2D  ViewportCenter = FVector2D(ViewportSize.X / 2, ViewportSize.Y / 2);
-
-		PlayerController->DeprojectScreenPositionToWorld
-		(
-			ViewportCenter.X,
-			ViewportCenter.Y,
-			location,
-			direction
-		);
-
-		// Get the camera transform.
-		FVector CameraLocation;
-		FRotator CameraRotation;
-		GetActorEyesViewPoint(CameraLocation, CameraRotation);
-
-		//Trnasform MuzzleOffet from camera space to world space
-		FVector MuzzleLocation = location;// +FTransform(direction.Rotation()).TransformVector(MuzzleOffset);// <- here we get the camera position and add the local muzzle value to get a world value for the muzzle
-		FRotator MuzzleRotation = direction.Rotation();
-		// skew to point slightly upward
-		//MuzzleRotation.Pitch += 10.0f;
-		UWorld* World = GetWorld();
-		if (World)
-		{
-			FActorSpawnParameters SpawnParams;
-			SpawnParams.Owner = this;
-			SpawnParams.Instigator = Instigator;
-			//Spawn the projectile at the muzzle
-			AFPSProjectile* Projectile = World->SpawnActor<AFPSProjectile>(ProjectileClass, MuzzleLocation, MuzzleRotation, SpawnParams);
-			if (Projectile)
-			{
-				FVector LaunchDirection = MuzzleRotation.Vector();
-				Projectile->FireInDirection(LaunchDirection);
-			}
-		}
-
-	}
-
-	
+void AFPSCharacter::Reload()
+{
+	HeldWeapon->Reload();
 }
