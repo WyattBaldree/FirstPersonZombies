@@ -121,10 +121,14 @@ void AFPSCharacter::StopJump() {
 
 void AFPSCharacter::Fire()
 {
-	HeldWeapon->Fire();
+	if (HeldWeapon) {
+		HeldWeapon->Fire();
+	}
 }
 
 void AFPSCharacter::Reload()
 {
-	HeldWeapon->Reload();
+	if (HeldWeapon) {
+		HeldWeapon->Reload();
+	}
 }
