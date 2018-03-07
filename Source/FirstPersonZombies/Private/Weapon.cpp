@@ -29,17 +29,19 @@ void AWeapon::BeginPlay()
 
 void AWeapon::Fire()
 {
+	if (ShootIntervalCurrent > 0) return;
+
 	// Get the animation object for the arms mesh
 	UAnimInstance* AnimInstance = GunMesh->GetAnimInstance();
 
-	if (Reloading) Reloading = false;
+	if (Reloading) return;
 
-	AnimInstance->StopSlotAnimation(0, "Arms");
-
-	if (magazine_current <= 0) {
+	if (MagazineCurrent <= 0 && !Reloading) {
 		Reload();
 		return;
 	}
+
+	AnimInstance->StopSlotAnimation(0, "Arms");
 
 	// try and play a firing animation if specified
 	if (FireAnimation)
@@ -92,11 +94,16 @@ void AWeapon::Fire()
 			{
 				FVector LaunchDirection = MuzzleRotation.Vector();
 				Projectile->FireInDirection(LaunchDirection);
-				magazine_current--;
+				
 			}
 		}
 
 	}
+
+
+	// If we fire, expend a single bullet and reset our fire interval.
+	MagazineCurrent--;
+	ShootIntervalCurrent = ShootInterval;
 }
 
 void AWeapon::Reload()
@@ -107,7 +114,7 @@ void AWeapon::Reload()
 		UGameplayStatics::PlaySoundAtLocation(this, ReloadSound, GetActorLocation());
 	}
 
-	// try and play a firing animation if specified
+	// try and play a reload animation if specified
 	if (ReloadAnimation)
 	{
 		// Get the animation object for the arms mesh
@@ -120,6 +127,7 @@ void AWeapon::Reload()
 	}
 
 	Reloading = true;
+	ReloadTimeCurrent = ReloadTime;
 }
 
 // Called every frame
@@ -127,5 +135,23 @@ void AWeapon::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	if (Reloading) {
+		ReloadTimeCurrent -= DeltaTime;
+
+		if(ReloadTimeCurrent <= 0) {
+			Reloading = false;
+			MagazineCurrent = MagazineMax;
+		}
+	}
+
+	ShootIntervalCurrent -= DeltaTime;
+
+	if (GEngine)
+	{
+		// Put up a debug message for five seconds. The -1 "Key" value (first argument) indicates that we will never need to update or refresh this message.
+		GEngine->AddOnScreenDebugMessage(-1, 0.5f, FColor::Red, FString::SanitizeFloat(MagazineCurrent));
+	}
+
+		
 }
 
