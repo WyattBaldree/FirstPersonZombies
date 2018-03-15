@@ -1,7 +1,6 @@
 // Copyright 1998-2017 Epic Games, Inc. All Rights Reserved.
 
 #include "FirstPersonZombiesGameMode.h"
-#include "FirstPersonZombiesHUD.h"
 #include "UObject/ConstructorHelpers.h"
 
 AFirstPersonZombiesGameMode::AFirstPersonZombiesGameMode()

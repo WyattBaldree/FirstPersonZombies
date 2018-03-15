@@ -77,6 +77,7 @@ void AZombieManager::SpawnZombie(AZombieSpawner* Spawner)
 			AFPSZombie* NewZombie = World->SpawnActor<AFPSZombie>(ZombieClass, SpawnerLocation, SpawnerRotation, Parameters);
 
 			if (NewZombie) {
+				// We have to shift the zombie up to prevent them from clipping through the floor.
 				FVector ZombieBoundingBoxCenter;
 				FVector ZombieBoundingBoxExtent;
 				NewZombie->GetActorBounds(true, ZombieBoundingBoxCenter, ZombieBoundingBoxExtent);
@@ -85,7 +86,6 @@ void AZombieManager::SpawnZombie(AZombieSpawner* Spawner)
 
 				float SpawnShift = ZombieBoundingBoxExtent.Z - (ZombieBoundingBoxCenter.X - ZombieRootLocation.Z);
 
-				//FString CoordinateString = FString::Printf(TEXT("Character Position is %s"), *Orgin.ToCompactString());
 				NewZombie->AddActorLocalOffset(FVector(0.0, 0.0, SpawnShift));
 				
 			}
