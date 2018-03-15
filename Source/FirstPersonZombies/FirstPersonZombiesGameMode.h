@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/GameModeBase.h"
+#include "ZombieManager.h"
 #include "FirstPersonZombiesGameMode.generated.h"
 
 UCLASS(minimalapi)
@@ -13,6 +14,17 @@ class AFirstPersonZombiesGameMode : public AGameModeBase
 
 public:
 	AFirstPersonZombiesGameMode();
+
+	void MakeZombieManager();
+
+	// Called every frame
+	virtual void Tick(float DeltaTime) override;
+
+	UPROPERTY(EditAnywhere)
+	TSubclassOf<class AZombieManager> ZombieManagerClass;
+
+	UPROPERTY()
+	AZombieManager* MyZombieManager;
 };
 
 

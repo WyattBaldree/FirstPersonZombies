@@ -149,7 +149,7 @@ void AWeapon::Tick(float DeltaTime)
 	if (GEngine)
 	{
 		// Put up a debug message for five seconds. The -1 "Key" value (first argument) indicates that we will never need to update or refresh this message.
-		GEngine->AddOnScreenDebugMessage(-1, 0.5f, FColor::Red, FString::SanitizeFloat(MagazineCurrent));
+		//GEngine->AddOnScreenDebugMessage(-1, 0.5f, FColor::Red, FString::SanitizeFloat(MagazineCurrent));
 	}
 
 		
