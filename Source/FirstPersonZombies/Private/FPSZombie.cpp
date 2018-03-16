@@ -2,6 +2,7 @@
 
 #include "FPSZombie.h"
 #include "FirstPersonZombiesGameMode.h"
+#include "GameFramework/CharacterMovementComponent.h"
 
 
 // Sets default values
@@ -9,13 +10,20 @@ AFPSZombie::AFPSZombie()
 {
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
-
+	AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
 }
 
 // Called when the game starts or when spawned
 void AFPSZombie::BeginPlay()
 {
 	Super::BeginPlay();
+
+	//Randomize the update interval so not all zombies are updating at the same time.
+	CurrentDelta = FMath::RandRange(0.0f, UpdateInterval);
+
+	//Set the character movement speed.
+	UCharacterMovementComponent* MyCharacterMovement = GetCharacterMovement();
+	MyCharacterMovement->MaxWalkSpeed = ZombieMaxSpeed;
 	
 	//When this Zombie is created, add it to the ZombieList in our ZombieManager.
 	AFirstPersonZombiesGameMode* GameMode = (AFirstPersonZombiesGameMode*)GetWorld()->GetAuthGameMode();

@@ -14,6 +14,8 @@
 #include "Kismet/GameplayStatics.h"
 #include "Animation/AnimInstance.h"
 #include "GameFramework/PlayerController.h"
+#include "FirstPersonZombiesGameMode.h"
+#include "ZombieManager.h"
 #include "Engine/EngineTypes.h"
 
 // Sets default values
@@ -96,6 +98,8 @@ void AFPSCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompon
 
 	PlayerInputComponent->BindAction("Fire", IE_Pressed, this, &AFPSCharacter::Fire);
 	PlayerInputComponent->BindAction("Reload", IE_Pressed, this, &AFPSCharacter::Reload);
+
+	PlayerInputComponent->BindAction("DebugWyatt", IE_Pressed, this, &AFPSCharacter::DebugWyatt);
 }
 
 void AFPSCharacter::MoveForward(float Value)
@@ -130,5 +134,33 @@ void AFPSCharacter::Reload()
 {
 	if (HeldWeapon) {
 		HeldWeapon->Reload();
+	}
+}
+
+void AFPSCharacter::DebugWyatt()
+{
+	if (GEngine) {
+		GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Red, TEXT("DebugWyatt!"));
+	}
+
+	if (DebugZombieSpawner == NULL) {
+		if (GEngine) {
+			GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Red, TEXT("DebugZombieSpawner not set!"));
+		}
+		return;
+	}
+
+
+	AFirstPersonZombiesGameMode* GameMode = (AFirstPersonZombiesGameMode*)GetWorld()->GetAuthGameMode();
+	AZombieManager* ZombieManager = GameMode->MyZombieManager;
+
+	if (ZombieManager) {
+		ZombieManager->SpawnZombie(DebugZombieSpawner);
+	}
+	else
+	{
+		if (GEngine) {
+			GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Red, TEXT("ZombieManager does not exist!"));
+		}
 	}
 }

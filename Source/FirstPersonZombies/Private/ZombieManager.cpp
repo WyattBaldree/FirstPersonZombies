@@ -1,6 +1,7 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "ZombieManager.h"
+#include "Components/CapsuleComponent.h"
 
 
 // Sets default values
@@ -78,16 +79,10 @@ void AZombieManager::SpawnZombie(AZombieSpawner* Spawner)
 
 			if (NewZombie) {
 				// We have to shift the zombie up to prevent them from clipping through the floor.
-				FVector ZombieBoundingBoxCenter;
-				FVector ZombieBoundingBoxExtent;
-				NewZombie->GetActorBounds(true, ZombieBoundingBoxCenter, ZombieBoundingBoxExtent);
+				float CapsuleHalfHeight = NewZombie->GetCapsuleComponent()->GetScaledCapsuleHalfHeight();
+				NewZombie->AddActorLocalOffset(FVector(0.0, 0.0, CapsuleHalfHeight));
 
-				FVector ZombieRootLocation = NewZombie->GetRootComponent()->GetComponentLocation();
-
-				float SpawnShift = ZombieBoundingBoxExtent.Z - (ZombieBoundingBoxCenter.X - ZombieRootLocation.Z);
-
-				NewZombie->AddActorLocalOffset(FVector(0.0, 0.0, SpawnShift));
-				
+				NewZombie->TargetActor = Spawner->InitialTargetActor;
 			}
 			else
 			{
