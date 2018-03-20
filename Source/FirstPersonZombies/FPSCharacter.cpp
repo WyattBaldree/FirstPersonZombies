@@ -155,7 +155,8 @@ void AFPSCharacter::DebugWyatt()
 	AZombieManager* ZombieManager = GameMode->MyZombieManager;
 
 	if (ZombieManager) {
-		ZombieManager->SpawnZombie(DebugZombieSpawner);
+		//ZombieManager->SpawnZombie(DebugZombieSpawner);
+		ZombieManager->NewZombie();
 	}
 	else
 	{

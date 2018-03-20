@@ -6,6 +6,8 @@
 #include "GameFramework/Actor.h"
 #include "ZombieSpawner.generated.h"
 
+class AZombieManager;
+
 UCLASS()
 class FIRSTPERSONZOMBIES_API AZombieSpawner : public AActor
 {
@@ -25,5 +27,16 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Gameplay")
 	AActor* InitialTargetActor;
+
+	UPROPERTY(BlueprintReadWrite, Category = "Gameplay")
+	bool IsActive = true;
+
+	// This value is only updated periodically, when needed.
+	float DistanceFromPlayer = 0.0f;
+
+	void UpdateDistance();
+
+private:
+	AZombieManager* ZombieManagerReference;
 	
 };

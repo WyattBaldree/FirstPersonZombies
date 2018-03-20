@@ -1,6 +1,7 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "ZombieManager.h"
+#include "Kismet/GameplayStatics.h"
 #include "Components/CapsuleComponent.h"
 
 
@@ -23,45 +24,19 @@ void AZombieManager::BeginPlay()
 void AZombieManager::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-
-	/*// Iterate htrough all NPCs
-	for (int i = 0; i < ZombieList.Num(); i++) {
-		AFPSZombie* CurrentZombie = ZombieList[i];
-		// If the current NPC is not busy doing something else
-		/*if (CurrentZombie->Busy == false) {
-			// Create an Array to hold all possible workstations the NPC can enter.
-			TArray<AZombieSpawner*> WorkstationArray;
-			// Fill WorkstationArray with all possible workstations
-			for (AZombieSpawner*& Workstation : ZombieSpawnerList) {
-				// If our workstation accepts NPCs with our current NPCs type
-				if (Workstation->AcceptedNPCTypes.Contains(CurrentZombie->NPCType) && Workstation->Occupied == false) {
-					WorkstationArray.Add(Workstation);
-				}
-
-				if (WorkstationArray.Num() > 0) {
-
-				}
-			}
-		}
-
-		if (GEngine) {
-			GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Yellow, GetDebugName(ZombieList[i]));
-		}
-
-	}*/
-
-	// Iterate through all zombie spawners
-	/*for (int i = 0; i < ZombieSpawnerList.Num(); i++) {
-		AZombieSpawner* CurrentSpawner = ZombieSpawnerList[i];
-
-		FVector SpawnerLocation = CurrentSpawner->GetActorLocation();
-		FRotator SpawnRotation = CurrentSpawner->GetActorRotation();
-
-		MyZombieManager = World->SpawnActor<AZombieManager>(ZombieManagerClass, FVector(0.f, 0.f, 0.f), FRotator::ZeroRotator, Parameters);
-	}*/
 }
 
-void AZombieManager::SpawnZombie(AZombieSpawner* Spawner)
+float AZombieManager::GetZombieHealth(int CurrentWave)
+{
+	return ZombieHealthBase + ((ZombieHealthScaling - 1) * CurrentWave);
+}
+
+float AZombieManager::GetWaveSize(int CurrentWave)
+{
+	return WaveSizeBase + ((WaveSizeScaling - 1) * CurrentWave);
+}
+
+bool AZombieManager::SpawnZombie(AZombieSpawner* Spawner)
 {
 	FVector SpawnerLocation = Spawner->GetActorLocation();
 	FRotator SpawnerRotation = Spawner->GetActorRotation();
@@ -79,10 +54,13 @@ void AZombieManager::SpawnZombie(AZombieSpawner* Spawner)
 
 			if (NewZombie) {
 				// We have to shift the zombie up to prevent them from clipping through the floor.
-				float CapsuleHalfHeight = NewZombie->GetCapsuleComponent()->GetScaledCapsuleHalfHeight();
-				NewZombie->AddActorLocalOffset(FVector(0.0, 0.0, CapsuleHalfHeight));
+				//float CapsuleHalfHeight = NewZombie->GetCapsuleComponent()->GetScaledCapsuleHalfHeight();
+				//NewZombie->AddActorLocalOffset(FVector(0.0, 0.0, CapsuleHalfHeight));
 
 				NewZombie->TargetActor = Spawner->InitialTargetActor;
+				NewZombie->MaxHP = GetZombieHealth(Wave);
+				NewZombie->HP = NewZombie->MaxHP;
+				return true;
 			}
 			else
 			{
@@ -99,6 +77,55 @@ void AZombieManager::SpawnZombie(AZombieSpawner* Spawner)
 		}
 	}
 
-	//MyZombieManager = World->SpawnActor<AZombieManager>(ZombieManagerClass, FVector(0.f, 0.f, 0.f), FRotator::ZeroRotator, Parameters);
+	return false;
+}
+
+void AZombieManager::UpdateSpawnerDistances()
+{
+	for (int i = 0; i < ZombieSpawnerList.Num(); i++) {
+		ZombieSpawnerList[i]->UpdateDistance();
+	}
+}
+
+AZombieSpawner* AZombieManager::PickSpawner()
+{
+	// Update the DistanceFromLPayer variable in the spawners for sorting later on.
+	UpdateSpawnerDistances();
+
+	// Fill a new array with all of the currently active zombie spawners.
+	TArray<AZombieSpawner*> ActiveZombieSpawners;
+	for (int i = 0; i < ZombieSpawnerList.Num(); i++) {
+		if (ZombieSpawnerList[i]->IsActive == true) {
+			ActiveZombieSpawners.Add(ZombieSpawnerList[i]);
+		}
+	}
+
+	for (int i = 0; i < ZombieSpawnerList.Num(); i++) {
+		//UE_LOG(LogTemp, Warning, TEXT("%s ::: %f"), *GetNameSafe(ActiveZombieSpawners[i]), ActiveZombieSpawners[i]->DistanceFromPlayer);
+	}
+
+	// Sort the list of active spawners by the distance variable they hold.
+	Algo::Sort(ActiveZombieSpawners, SpawnerSort());
+
+	for (int i = 0; i < ActiveZombieSpawners.Num(); i++) {
+		//UE_LOG(LogTemp, Warning, TEXT("%s ::: %f"),*GetNameSafe(ActiveZombieSpawners[i]), ActiveZombieSpawners[i]->DistanceFromPlayer);
+	}
+
+	int ChosenSpawnerIndex;
+	if (ActiveZombieSpawners.Num() < NumRandomSpawners) {
+		ChosenSpawnerIndex = FMath::RandRange(0, ActiveZombieSpawners.Num() - 1);
+	}
+	else{
+		ChosenSpawnerIndex = FMath::RandRange(0, NumRandomSpawners - 1);
+	}
+
+	UE_LOG(LogTemp, Warning, TEXT("%s"), *GetNameSafe(ActiveZombieSpawners[ChosenSpawnerIndex]));
+
+	return ActiveZombieSpawners[ChosenSpawnerIndex];
+}
+
+bool AZombieManager::NewZombie()
+{
+	return SpawnZombie(PickSpawner());
 }
 

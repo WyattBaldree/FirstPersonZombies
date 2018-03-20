@@ -6,6 +6,8 @@
 #include "GameFramework/Character.h"
 #include "FPSZombie.generated.h"
 
+class AZombieManager;
+
 UCLASS()
 class FIRSTPERSONZOMBIES_API AFPSZombie : public ACharacter
 {
@@ -44,4 +46,10 @@ public:
 
 	UFUNCTION()
 	bool Hurt(float Damage, bool Headshot);
+
+	UFUNCTION()
+	bool Die();
+	
+private:
+	AZombieManager* ZombieManagerReference;
 };
