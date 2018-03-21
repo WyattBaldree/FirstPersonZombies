@@ -156,7 +156,7 @@ void AFPSCharacter::DebugWyatt()
 
 	if (ZombieManager) {
 		//ZombieManager->SpawnZombie(DebugZombieSpawner);
-		ZombieManager->NewZombie();
+		ZombieManager->StartWave();
 	}
 	else
 	{

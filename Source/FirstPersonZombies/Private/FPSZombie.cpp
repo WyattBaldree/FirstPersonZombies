@@ -82,6 +82,7 @@ bool AFPSZombie::Hurt(float Damage, bool Headshot)
 bool AFPSZombie::Die()
 {
 	ZombieManagerReference->ZombieList.Remove(this);
+	ZombieManagerReference->CurrentWaveCount--;
 	Destroy();
 	return false;
 }

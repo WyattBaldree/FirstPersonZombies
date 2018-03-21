@@ -17,23 +17,103 @@ AZombieManager::AZombieManager()
 void AZombieManager::BeginPlay()
 {
 	Super::BeginPlay();
-	
+	StartWave();
 }
 
 // Called every frame
 void AZombieManager::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+
+	if (GEngine) {
+		GEngine->AddOnScreenDebugMessage(0, 5.0f, FColor::Yellow, TEXT("CurrentWaveCount: ") + FString::FromInt(CurrentWaveCount));
+		GEngine->AddOnScreenDebugMessage(1, 5.0f, FColor::Yellow, TEXT("CurrentWaveSupply: ") + FString::FromInt(CurrentWaveSupply));
+		GEngine->AddOnScreenDebugMessage(2, 5.0f, FColor::Yellow, TEXT("Wave: ") + FString::FromInt(Wave));
+
+		switch (WaveState) {
+		case EWaveStateEnum::VE_Waiting:
+			GEngine->AddOnScreenDebugMessage(3, 5.0f, FColor::Yellow, TEXT("WaveState =  VE_Waiting"));
+			break;
+		case EWaveStateEnum::VE_Starting:
+			GEngine->AddOnScreenDebugMessage(3, 5.0f, FColor::Yellow, TEXT("WaveState =  VE_Starting"));
+			break;
+		case EWaveStateEnum::VE_InProgress:
+			GEngine->AddOnScreenDebugMessage(3, 5.0f, FColor::Yellow, TEXT("WaveState =  VE_InProgress"));
+			break;
+		case EWaveStateEnum::VE_Ending:
+			GEngine->AddOnScreenDebugMessage(3, 5.0f, FColor::Yellow, TEXT("WaveState =  VE_Ending"));
+			break;
+		}
+
+		GEngine->AddOnScreenDebugMessage(4, 5.0f, FColor::Yellow, TEXT("SpawnTimer: ") + FString::SanitizeFloat(SpawnTimer));
+	}
+
+
+
+	// If there is a wave in progress
+	if (WaveState == EWaveStateEnum::VE_InProgress) {
+
+		if (CurrentWaveSupply > 0) {
+			// increment our zombie spawning timer
+			SpawnTimer += DeltaTime;
+			if (SpawnTimer >= GetSpawnInterval(Wave)) {
+				SpawnTimer -= GetSpawnInterval(Wave);
+
+				// Attempt to spawn a zombie 100 times.
+				int i = 0;
+				while (!NewZombie()) {
+					i++;
+					if (i > 100) {
+
+						break;
+					}
+				}
+			}
+		}
+
+		if (CurrentWaveCount <= 0) EndWave();
+	}
+}
+
+void AZombieManager::StartWave()
+{
+	WaveState = EWaveStateEnum::VE_Starting;
+	CurrentWaveCount = GetWaveSize(Wave);
+	CurrentWaveSupply = CurrentWaveCount;
+
+	if (GEngine) {
+		GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Yellow, TEXT("Starting Wave: ") + FString::FromInt(Wave));
+	}
+
+	// Here we would put anything that needs to happen as a wave is starting up.
+	// i.e. hud elements and sound effects.
+
+	WaveState = EWaveStateEnum::VE_InProgress;
+}
+
+void AZombieManager::EndWave()
+{
+	WaveState = EWaveStateEnum::VE_Starting;
+	// Here we would put anything that needs to happen as a wave is ending.
+	// i.e. hud elements and sound effects.
+	Wave++;
+	// At the end of this wave, start the next.
+	StartWave();
+}
+
+float AZombieManager::GetSpawnInterval(int CurrentWave)
+{
+	return SpawnIntervalBase + ((CurrentWave - 1) * SpawnIntervalScaling);
 }
 
 float AZombieManager::GetZombieHealth(int CurrentWave)
 {
-	return ZombieHealthBase + ((ZombieHealthScaling - 1) * CurrentWave);
+	return ZombieHealthBase + ((CurrentWave - 1) * ZombieHealthScaling);
 }
 
 float AZombieManager::GetWaveSize(int CurrentWave)
 {
-	return WaveSizeBase + ((WaveSizeScaling - 1) * CurrentWave);
+	return WaveSizeBase + ((CurrentWave - 1) * WaveSizeScaling);
 }
 
 bool AZombieManager::SpawnZombie(AZombieSpawner* Spawner)
@@ -64,9 +144,7 @@ bool AZombieManager::SpawnZombie(AZombieSpawner* Spawner)
 			}
 			else
 			{
-				if (GEngine) {
-					GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Yellow, TEXT("Problem spawning a new zombie in the method SpawnZombie."));
-				}
+				UE_LOG(LogTemp, Warning, TEXT("Unable to spawn zombie at zombie spawner: %s"), *GetNameSafe(Spawner));
 			}
 		}
 	}
@@ -126,6 +204,17 @@ AZombieSpawner* AZombieManager::PickSpawner()
 
 bool AZombieManager::NewZombie()
 {
-	return SpawnZombie(PickSpawner());
+	if (SpawnZombie(PickSpawner())) {
+		CurrentWaveSupply--;
+		return true;
+	}
+	else {
+		if (GEngine)
+		{
+			GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Red, TEXT("Trouble spawning a zombie in function NewZombie()"));
+		}
+		return false;
+	}
+	
 }
 

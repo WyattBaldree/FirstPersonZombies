@@ -50,7 +50,4 @@ void AFirstPersonZombiesGameMode::MakeZombieManager() {
 
 void AFirstPersonZombiesGameMode::Tick(float DeltaTime) {
 	Super::Tick(DeltaTime);
-	if (GEngine) {
-		GEngine->AddOnScreenDebugMessage(-1, 0.2f, FColor::Blue, ZombieManagerClass == NULL ? TEXT("true") : TEXT("false"));
-	}
 }
