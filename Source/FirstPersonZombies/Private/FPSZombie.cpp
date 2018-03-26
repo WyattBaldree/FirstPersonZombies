@@ -47,7 +47,6 @@ void AFPSZombie::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 	if (GEngine) {
-
 		//GEngine->AddOnScreenDebugMessage(-1, 0.5f, FColor::Green, FString::SanitizeFloat(HP));
 	}
 }
