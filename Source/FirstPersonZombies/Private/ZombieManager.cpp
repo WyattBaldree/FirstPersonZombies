@@ -26,26 +26,26 @@ void AZombieManager::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 
 	if (GEngine) {
-		GEngine->AddOnScreenDebugMessage(0, 5.0f, FColor::Yellow, TEXT("CurrentWaveCount: ") + FString::FromInt(CurrentWaveCount));
-		GEngine->AddOnScreenDebugMessage(1, 5.0f, FColor::Yellow, TEXT("CurrentWaveSupply: ") + FString::FromInt(CurrentWaveSupply));
-		GEngine->AddOnScreenDebugMessage(2, 5.0f, FColor::Yellow, TEXT("Wave: ") + FString::FromInt(Wave));
+		GEngine->AddOnScreenDebugMessage(1, 5.0f, FColor::Yellow, TEXT("CurrentWaveCount: ") + FString::FromInt(CurrentWaveCount));
+		GEngine->AddOnScreenDebugMessage(2, 5.0f, FColor::Yellow, TEXT("CurrentWaveSupply: ") + FString::FromInt(CurrentWaveSupply));
+		GEngine->AddOnScreenDebugMessage(3, 5.0f, FColor::Yellow, TEXT("Wave: ") + FString::FromInt(Wave));
 
 		switch (WaveState) {
 		case EWaveStateEnum::VE_Waiting:
-			GEngine->AddOnScreenDebugMessage(3, 5.0f, FColor::Yellow, TEXT("WaveState =  VE_Waiting"));
+			GEngine->AddOnScreenDebugMessage(4, 5.0f, FColor::Yellow, TEXT("WaveState =  VE_Waiting"));
 			break;
 		case EWaveStateEnum::VE_Starting:
-			GEngine->AddOnScreenDebugMessage(3, 5.0f, FColor::Yellow, TEXT("WaveState =  VE_Starting"));
+			GEngine->AddOnScreenDebugMessage(4, 5.0f, FColor::Yellow, TEXT("WaveState =  VE_Starting"));
 			break;
 		case EWaveStateEnum::VE_InProgress:
-			GEngine->AddOnScreenDebugMessage(3, 5.0f, FColor::Yellow, TEXT("WaveState =  VE_InProgress"));
+			GEngine->AddOnScreenDebugMessage(4, 5.0f, FColor::Yellow, TEXT("WaveState =  VE_InProgress"));
 			break;
 		case EWaveStateEnum::VE_Ending:
-			GEngine->AddOnScreenDebugMessage(3, 5.0f, FColor::Yellow, TEXT("WaveState =  VE_Ending"));
+			GEngine->AddOnScreenDebugMessage(4, 5.0f, FColor::Yellow, TEXT("WaveState =  VE_Ending"));
 			break;
 		}
 
-		GEngine->AddOnScreenDebugMessage(4, 5.0f, FColor::Yellow, TEXT("SpawnTimer: ") + FString::SanitizeFloat(SpawnTimer));
+		GEngine->AddOnScreenDebugMessage(5, 5.0f, FColor::Yellow, TEXT("SpawnTimer: ") + FString::SanitizeFloat(SpawnTimer));
 	}
 
 
@@ -118,6 +118,8 @@ float AZombieManager::GetWaveSize(int CurrentWave)
 
 bool AZombieManager::SpawnZombie(AZombieSpawner* Spawner)
 {
+	if (Spawner == NULL) return false;
+
 	FVector SpawnerLocation = Spawner->GetActorLocation();
 	FRotator SpawnerRotation = Spawner->GetActorRotation();
 
@@ -178,16 +180,13 @@ AZombieSpawner* AZombieManager::PickSpawner()
 		}
 	}
 
-	for (int i = 0; i < ZombieSpawnerList.Num(); i++) {
-		//UE_LOG(LogTemp, Warning, TEXT("%s ::: %f"), *GetNameSafe(ActiveZombieSpawners[i]), ActiveZombieSpawners[i]->DistanceFromPlayer);
+	if (ActiveZombieSpawners.Num() <= 0) {
+		UE_LOG(LogTemp, Warning, TEXT("Unable to find any active zombie spawners."));
+		return NULL;
 	}
 
 	// Sort the list of active spawners by the distance variable they hold.
 	Algo::Sort(ActiveZombieSpawners, SpawnerSort());
-
-	for (int i = 0; i < ActiveZombieSpawners.Num(); i++) {
-		//UE_LOG(LogTemp, Warning, TEXT("%s ::: %f"),*GetNameSafe(ActiveZombieSpawners[i]), ActiveZombieSpawners[i]->DistanceFromPlayer);
-	}
 
 	int ChosenSpawnerIndex;
 	if (ActiveZombieSpawners.Num() < NumRandomSpawners) {
@@ -211,7 +210,7 @@ bool AZombieManager::NewZombie()
 	else {
 		if (GEngine)
 		{
-			GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Red, TEXT("Trouble spawning a zombie in function NewZombie()"));
+			GEngine->AddOnScreenDebugMessage(0, 5.0f, FColor::Red, TEXT("Trouble spawning a zombie in function NewZombie()"));
 		}
 		return false;
 	}
