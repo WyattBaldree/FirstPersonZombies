@@ -6,6 +6,8 @@
 #include "GameFramework/Character.h"
 #include "FPSZombie.generated.h"
 
+class AZombieManager;
+
 UCLASS()
 class FIRSTPERSONZOMBIES_API AFPSZombie : public ACharacter
 {
@@ -29,7 +31,25 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Gameplay")
 	float MaxHP = 100;
 	float HP = MaxHP;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Gameplay")
+	float ZombieMaxSpeed = 300.0;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Gameplay")
+	float CurrentDelta = 0;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Gameplay")
+	AActor* TargetActor = NULL;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Gameplay")
+	float UpdateInterval = 0.1f;
 
 	UFUNCTION()
 	bool Hurt(float Damage, bool Headshot);
+
+	UFUNCTION()
+	bool Die();
+	
+private:
+	AZombieManager* ZombieManagerReference;
 };

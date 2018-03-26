@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "Weapon.h"
+#include "ZombieSpawner.h"
 #include "FPSCharacter.generated.h"
 
 
@@ -62,10 +63,15 @@ public:
 	UFUNCTION()
 	void Reload();
 
+	UFUNCTION()
+	void DebugWyatt();
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Gameplay")
 	AWeapon* HeldWeapon;
 
 	UFUNCTION(BlueprintCallable)
 	void EquipWeapon(AWeapon* weapon);
 
-	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Gameplay")
+	AZombieSpawner* DebugZombieSpawner;
 };
