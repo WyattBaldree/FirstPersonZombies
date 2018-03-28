@@ -57,29 +57,37 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
-	UPROPERTY(EditAnywhere, Category = "Weapon")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
+	int AmmoMax = 49;
+	UPROPERTY(BlueprintReadWrite)
+	int AmmoCurrent = AmmoMax;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
 	int MagazineMax = 7;
+	UPROPERTY(BlueprintReadWrite)
+	int MagazineCurrent = MagazineMax;
 
 	UPROPERTY(EditAnywhere, Category = "Weapon")
 	float ShootInterval = 1.0;
-
 	float ShootIntervalCurrent = ShootInterval;
 
-	int MagazineCurrent = MagazineMax;
+	UPROPERTY(EditAnywhere, Category = "Weapon")
+	float ReloadTime = 2.0;
+	float ReloadTimeCurrent = 0.0;
+	bool Reloading;
+	
+	UPROPERTY(EditAnywhere, Category = "Weapon")
+	float Bloom = 0.25;
+	UPROPERTY(EditAnywhere, Category = "Weapon")
+	float BloomDelta = 0.01;
+	UPROPERTY(BlueprintReadWrite)
+	float BloomCurrent = 0.0;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Gameplay")
 	FVector GunOffset;
 	
-	UFUNCTION()
+	UFUNCTION(BlueprintCallable)
 	void Fire();
 
 	UFUNCTION()
 	void Reload();
-
-	bool Reloading;
-
-	UPROPERTY(EditAnywhere)
-	float ReloadTime = 2.0;
-
-	float ReloadTimeCurrent = 0;
 };
