@@ -47,7 +47,7 @@ public:
 	UFUNCTION()
 	bool Hurt(float Damage, bool Headshot);
 
-	UFUNCTION()
+	UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category = "Zombie")
 	bool Die();
 	
 private:
