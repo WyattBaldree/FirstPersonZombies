@@ -79,6 +79,11 @@ void AFPSCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	if (HeldWeapon && Firing) {
+		HeldWeapon->Fire(TriggerPulled);
+	}
+
+	TriggerPulled = false;
 }
 
 // Called to bind functionality to input
@@ -96,7 +101,8 @@ void AFPSCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompon
 	PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &AFPSCharacter::StartJump);
 	PlayerInputComponent->BindAction("Jump", IE_Released, this, &AFPSCharacter::StopJump);
 
-	PlayerInputComponent->BindAction("Fire", IE_Pressed, this, &AFPSCharacter::Fire);
+	PlayerInputComponent->BindAction("Fire", IE_Pressed, this, &AFPSCharacter::FirePress);
+	PlayerInputComponent->BindAction("Fire", IE_Released, this, &AFPSCharacter::FireRelease);
 	PlayerInputComponent->BindAction("Reload", IE_Pressed, this, &AFPSCharacter::Reload);
 
 	PlayerInputComponent->BindAction("DebugWyatt", IE_Pressed, this, &AFPSCharacter::DebugWyatt);
@@ -123,11 +129,15 @@ void AFPSCharacter::StopJump() {
 	bPressedJump = false;
 }
 
-void AFPSCharacter::Fire()
+void AFPSCharacter::FirePress()
 {
-	if (HeldWeapon) {
-		HeldWeapon->Fire();
-	}
+	Firing = true;
+	TriggerPulled = true;
+}
+
+void AFPSCharacter::FireRelease()
+{
+	Firing = false;
 }
 
 void AFPSCharacter::Reload()

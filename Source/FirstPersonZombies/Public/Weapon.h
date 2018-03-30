@@ -71,7 +71,7 @@ public:
 	FVector GunOffset;
 	
 	UFUNCTION()
-	void Fire();
+	void Fire(bool TriggerPulled);
 
 	UFUNCTION()
 	void Reload();
@@ -82,4 +82,7 @@ public:
 	float ReloadTime = 2.0;
 
 	float ReloadTimeCurrent = 0;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Gameplay")
+	bool Automatic = false;
 };

@@ -27,8 +27,10 @@ void AWeapon::BeginPlay()
 	
 }
 
-void AWeapon::Fire()
+void AWeapon::Fire(bool TriggerPulled)
 {
+	if (!TriggerPulled && !Automatic) return;
+
 	if (ShootIntervalCurrent > 0) return;
 
 	// Get the animation object for the arms mesh

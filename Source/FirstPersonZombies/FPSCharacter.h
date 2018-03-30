@@ -58,7 +58,13 @@ public:
 	void StopJump();
 
 	UFUNCTION()
-	void Fire();
+	void FireRelease();
+
+	UFUNCTION()
+	void FirePress();
+
+	bool Firing = false;
+	bool TriggerPulled = false;
 
 	UFUNCTION()
 	void Reload();
