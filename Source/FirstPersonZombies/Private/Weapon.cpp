@@ -23,11 +23,17 @@ AWeapon::AWeapon()
 void AWeapon::BeginPlay()
 {
 	Super::BeginPlay();
-	
+	AmmoCurrent = AmmoMax;
+	MagazineCurrent = MagazineMax;
+
 }
 
-void AWeapon::Fire()
+void AWeapon::Fire(bool TriggerPulled)
 {
+	// If we are semi automatic and the trigger wasn't just pulled, don't shoot.
+	if (!Automatic && !TriggerPulled) return;
+
+	// If we are not ready to shoot again, return.
 	if (ShootIntervalCurrent > 0) return;
 
 	// Get the animation object for the arms mesh

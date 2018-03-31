@@ -60,6 +60,12 @@ public:
 	UFUNCTION()
 	void Fire();
 
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Gameplay")
+	bool Firing = false;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Gameplay")
+	bool TriggerPulled = false;
+
 	UFUNCTION()
 	void Reload();
 

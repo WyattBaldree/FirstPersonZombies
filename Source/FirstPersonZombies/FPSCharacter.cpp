@@ -126,7 +126,7 @@ void AFPSCharacter::StopJump() {
 void AFPSCharacter::Fire()
 {
 	if (HeldWeapon) {
-		HeldWeapon->Fire();
+		HeldWeapon->Fire(TriggerPulled);
 	}
 }
 

@@ -25,13 +25,9 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
-	
-
 	// First PErson mesh (arms), visible only to owning player
 	UPROPERTY(VisibleDefaultsOnly, Category = "Mesh")
 	USkeletalMeshComponent* GunMesh;
-
-	
 
 	// Projectile class to spawn.
 	UPROPERTY(EditDefaultsOnly, Category = "Gameplay")
@@ -82,11 +78,14 @@ public:
 	UPROPERTY(BlueprintReadWrite)
 	float BloomCurrent = 0.0;
 
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Weapon")
+	bool Automatic = false;
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Gameplay")
 	FVector GunOffset;
 	
 	UFUNCTION(BlueprintCallable, Category = "Weapon")
-	void Fire();
+	void Fire(bool TriggerPulled);
 
 	UFUNCTION()
 	void Reload();
