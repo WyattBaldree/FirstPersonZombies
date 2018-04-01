@@ -68,9 +68,10 @@ void AFPSCharacter::EquipWeapon(AWeapon* weapon)
 		GetActorEyesViewPoint(CameraLocation, CameraRotation);
 
 		HeldWeapon->SetActorLocation(CameraLocation + FTransform(CameraRotation).TransformVector(HeldWeapon->GunOffset));
-
+		HeldWeapon->SetActorRotation(CameraRotation, ETeleportType::TeleportPhysics);
 
 		HeldWeapon->AttachToComponent(FPSCameraComponent, FAttachmentTransformRules::KeepWorldTransform);
+		HeldWeapon->SetOwner(this);
 	}
 }
 
