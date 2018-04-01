@@ -10,6 +10,8 @@ AWeapon::AWeapon()
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
+	//USceneComponent* RootComponent = CreateDefaultSubobject<USceneComponent>(TEXT("RootComponent"));
+
 	// Create a first person mesh component for the owning player.
 	GunMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("GunMesh"));
 	// Only the owning player sees this mesh.
@@ -23,11 +25,17 @@ AWeapon::AWeapon()
 void AWeapon::BeginPlay()
 {
 	Super::BeginPlay();
-	
+	AmmoCurrent = AmmoMax;
+	MagazineCurrent = MagazineMax;
+
 }
 
-void AWeapon::Fire()
+void AWeapon::Fire(bool TriggerPulled)
 {
+	// If we are semi automatic and the trigger wasn't just pulled, don't shoot.
+	if (!Automatic && !TriggerPulled) return;
+
+	// If we are not ready to shoot again, return.
 	if (ShootIntervalCurrent > 0) return;
 
 	// Get the animation object for the arms mesh
