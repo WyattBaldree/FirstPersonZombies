@@ -72,11 +72,49 @@ public:
 	UFUNCTION()
 	void DebugWyatt();
 
+	// Currently held weapon (sidearm or weapon)
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Gameplay")
 	AWeapon* HeldWeapon;
 
+	// SideArm slot
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Gameplay")
+	AWeapon* SideArm;
+
+	// Wepon slots (does not include the sidearm)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Gameplay")
+	TArray<AWeapon*> Weapons;
+
+	// Switch to a weapon
 	UFUNCTION(BlueprintCallable)
-	void EquipWeapon(AWeapon* weapon);
+	void SwitchWeapon(int WeaponIndex);
+
+	// Switch to your sidearm
+	UFUNCTION(BlueprintCallable)
+	void SwitchSideArm();
+
+	// Switch to your sidearm
+	UFUNCTION(BlueprintCallable)
+	void SwitchWeapon1();
+
+	// Switch to your sidearm
+	UFUNCTION(BlueprintCallable)
+	void SwitchWeapon2();
+	
+	// Equip a new weapon to one of your 2 wepon slots
+	UFUNCTION(BlueprintCallable)
+	void EquipWeapon(AWeapon* weapon, int WeaponIndex);
+
+	// Equip a new weapon to one of your SideArm slot
+	UFUNCTION(BlueprintCallable)
+	void EquipSideArm(AWeapon* weapon);
+
+	// You currently chosen weapon (but not including sidearms)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Gameplay")
+	int CurrentWeapon = 0;
+
+	// Are we currently holding the sidearm?
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Gameplay")
+	bool HoldingSideArm = true;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Gameplay")
 	AZombieSpawner* DebugZombieSpawner;

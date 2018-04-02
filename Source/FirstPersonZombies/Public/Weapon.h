@@ -49,6 +49,12 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Gameplay")
 	USoundBase* ReloadSound;
 
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Weapon")
+	bool Automatic = false;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Weapon")
+	bool IsSideArm = false;
+
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
@@ -77,9 +83,6 @@ public:
 	float BloomDelta = 0.01;
 	UPROPERTY(BlueprintReadWrite)
 	float BloomCurrent = 0.0;
-
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Weapon")
-	bool Automatic = false;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Gameplay")
 	FVector GunOffset;
