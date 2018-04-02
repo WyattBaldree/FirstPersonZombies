@@ -142,6 +142,7 @@ bool AZombieManager::SpawnZombie(AZombieSpawner* Spawner)
 				NewZombie->TargetActor = Spawner->InitialTargetActor;
 				NewZombie->MaxHP = GetZombieHealth(Wave);
 				NewZombie->HP = NewZombie->MaxHP;
+				NewZombie->TargetActor = UGameplayStatics::GetPlayerCharacter(GetWorld(), 0);
 				return true;
 			}
 			else
