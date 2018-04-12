@@ -218,3 +218,8 @@ bool AZombieManager::NewZombie()
 	
 }
 
+void AZombieManager::KillAll()
+{
+	while(ZombieList.Num() > 0)
+		ZombieList.Last(0)->Die();
+}

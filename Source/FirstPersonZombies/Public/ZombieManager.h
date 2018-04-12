@@ -35,7 +35,7 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TArray<AFPSZombie*> ZombieList;
 
 	UPROPERTY(EditAnywhere)
@@ -138,6 +138,11 @@ public:
 	UFUNCTION()
 	AZombieSpawner* PickSpawner();
 
+	/****************** Death Functions *********************/
+	
+	/** This function tells each currently spawned zombie to kill itself */
+	UFUNCTION(BlueprintCallable)
+	void KillAll();
 	
 
 	// Struct used for sorting the zombie spawners by distance from player.

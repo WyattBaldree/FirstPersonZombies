@@ -59,7 +59,7 @@ void AFPSZombie::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent
 }
 
 
-bool AFPSZombie::Hurt(float Damage, bool Headshot)
+bool AFPSZombie::Hurt_Implementation(float Damage, bool Headshot)
 {
 	if (Headshot) {
 		HP -= Damage*2.5;

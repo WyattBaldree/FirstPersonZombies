@@ -46,7 +46,7 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Gameplay")
 	float UpdateInterval = 0.1f;
 
-	UFUNCTION()
+	UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category = "Zombie")
 	bool Hurt(float Damage, bool Headshot);
 
 	UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category = "Zombie")

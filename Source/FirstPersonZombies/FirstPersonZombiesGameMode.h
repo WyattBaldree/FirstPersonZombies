@@ -23,7 +23,7 @@ public:
 	UPROPERTY(EditAnywhere)
 	TSubclassOf<class AZombieManager> ZombieManagerClass;
 
-	UPROPERTY()
+	UPROPERTY(BlueprintReadWrite, Category = "Managers")
 	AZombieManager* MyZombieManager;
 };
 
