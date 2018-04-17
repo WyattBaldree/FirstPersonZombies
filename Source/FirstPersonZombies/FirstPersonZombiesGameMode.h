@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/GameModeBase.h"
 #include "ZombieManager.h"
+#include "LootManager.h"
 #include "FirstPersonZombiesGameMode.generated.h"
 
 UCLASS(minimalapi)
@@ -16,15 +17,20 @@ public:
 	AFirstPersonZombiesGameMode();
 
 	void MakeZombieManager();
+	void MakeLootManager();
 
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
 	UPROPERTY(EditAnywhere)
 	TSubclassOf<class AZombieManager> ZombieManagerClass;
-
 	UPROPERTY(BlueprintReadWrite, Category = "Managers")
 	AZombieManager* MyZombieManager;
+	
+	UPROPERTY(EditAnywhere)
+	TSubclassOf<class ALootManager> LootManagerClass;
+	UPROPERTY(BlueprintReadWrite, Category = "Managers")
+	ALootManager* MyLootManager;
 };
 
 

@@ -48,6 +48,38 @@ void AFirstPersonZombiesGameMode::MakeZombieManager() {
 	}
 }
 
+void AFirstPersonZombiesGameMode::MakeLootManager() {
+	if (GEngine) {
+		GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Red, TEXT("LOOOOOT!"));
+	}
+	UWorld* World = GetWorld();
+	if (World)
+	{
+
+		if (LootManagerClass == NULL) {
+			if (GEngine) {
+				GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Green, TEXT("You need to set the LootManagerClass in FirstPersonZombiesGameMode!"));
+			}
+		}
+		else
+		{
+			FActorSpawnParameters Parameters;
+			Parameters.bAllowDuringConstructionScript = true;
+			Parameters.bNoFail = true;
+			Parameters.Owner = this;
+			Parameters.Instigator = Instigator;
+
+			MyLootManager = World->SpawnActor<ALootManager>(LootManagerClass, FVector(0.f, 0.f, 0.f), FRotator::ZeroRotator, Parameters);
+		}
+
+		if (MyLootManager == NULL) {
+			if (GEngine) {
+				GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Green, TEXT("Unable to create an instance of LootManager in FirstPersonZombiesGameMode->MakeLootManager()"));
+			}
+		}
+	}
+}
+
 void AFirstPersonZombiesGameMode::Tick(float DeltaTime) {
 	Super::Tick(DeltaTime);
 }

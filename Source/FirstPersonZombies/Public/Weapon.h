@@ -48,6 +48,9 @@ protected:
 	/** Sound to play each time we fire */
 	UPROPERTY(EditDefaultsOnly, Category = "Gameplay")
 	USoundBase* ReloadSound;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Gameplay")
+	UTexture2D* Display;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Weapon")
 	bool Automatic = false;
