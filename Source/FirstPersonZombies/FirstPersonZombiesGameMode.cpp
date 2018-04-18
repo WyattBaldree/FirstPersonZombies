@@ -46,6 +46,7 @@ void AFirstPersonZombiesGameMode::MakeZombieManager() {
 			}
 		}
 	}
+	MakeLootManager();
 }
 
 void AFirstPersonZombiesGameMode::MakeLootManager() {
