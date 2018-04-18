@@ -100,7 +100,7 @@ void AWeapon::Fire(bool TriggerPulled)
 		// Rotate the orthogonal vecotr around our muzzle direction
 		FVector OrthogonalMuzzleVectorRotated = OrthogonalMuzzleVector.RotateAngleAxis(FMath::RandRange(0.0f, 360.0f), direction.GetSafeNormal(.01));
 		// Make a new vector in a random direction based off of bloom magnitude
-		FVector NewDirection = direction.GetSafeNormal(.01).operator+(OrthogonalMuzzleVectorRotated.GetSafeNormal(.000001) * BloomMagnitude);
+		FVector NewDirection = direction.GetSafeNormal(.01).operator+(OrthogonalMuzzleVectorRotated.GetSafeNormal(.000001) * FMath::RandRange(0.0f, BloomMagnitude));
 
 		//Trnasform MuzzleOffet from camera space to world space
 		FVector MuzzleLocation = location;
