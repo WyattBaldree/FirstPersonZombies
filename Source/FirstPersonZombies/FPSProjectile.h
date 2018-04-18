@@ -26,13 +26,6 @@ protected:
 	UPROPERTY(VisibleDefaultsOnly, Category = "Projectile")
 	USphereComponent* CollisionComponent;
 
-	UPROPERTY(EditAnywhere, Category = "Projectile")
-	float Damage = 12.5f;
-
-	// Sphere collision component
-	UPROPERTY(EditAnywhere, Category = "Projectile")
-	int Pierce = 3;
-
 	// Projectile Movement Component
 	UPROPERTY(VisibleAnywhere, Category = "Movement")
 	UProjectileMovementComponent* ProjectileMovementComponent;
@@ -53,4 +46,14 @@ public:
 
 	AActor* hitlist[10];
 	int hitlength = 0;
+
+	UPROPERTY(EditAnywhere, Category = "Projectile")
+	float Damage = 12.5f;
+
+	UPROPERTY(EditAnywhere, Category = "Projectile")
+	int Pierce = 3;
+
+	/** Sound to play each time we hit a zombie */
+	UPROPERTY(EditDefaultsOnly, Category = "Gameplay")
+	USoundBase* HitMarkerSound;
 };
