@@ -2,6 +2,7 @@
 
 #include "Weapon.h"
 #include "Animation/AnimSequence.h"
+#include "DrawDebugHelpers.h"
 #include "Kismet/GameplayStatics.h"
 
 // Sets default values
@@ -67,6 +68,10 @@ void AWeapon::Fire(bool TriggerPulled)
 		UGameplayStatics::PlaySoundAtLocation(this, FireSound, GetActorLocation());
 	}
 
+	if (GEngine) {
+		GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Red, TEXT("firing"));
+	}
+
 	// Attempt to fire a projectile.
 	if (ProjectileClass)
 	{
@@ -86,12 +91,25 @@ void AWeapon::Fire(bool TriggerPulled)
 			direction
 		);
 
+		
+		// How much are we currently blooming
+		float BloomMagnitude = BloomAmount * BloomCurrent;
+
+		// Get a vector orthogonal to our muzzle direction
+		FVector OrthogonalMuzzleVector = FVector(1.0f,1.0f,(-direction.X - direction.Y)/direction.Z).GetSafeNormal(.01);
+		// Rotate the orthogonal vecotr around our muzzle direction
+		FVector OrthogonalMuzzleVectorRotated = OrthogonalMuzzleVector.RotateAngleAxis(FMath::RandRange(0.0f, 360.0f), direction.GetSafeNormal(.01));
+		// Make a new vector in a random direction based off of bloom magnitude
+		FVector NewDirection = direction.GetSafeNormal(.01).operator+(OrthogonalMuzzleVectorRotated.GetSafeNormal(.000001) * BloomMagnitude);
+
 		//Trnasform MuzzleOffet from camera space to world space
 		FVector MuzzleLocation = location;
-		FRotator MuzzleRotation = direction.Rotation();
-		// skew to point slightly for bloom
-		MuzzleRotation.Pitch += 15.0f * BloomCurrent * (MagazineCurrent % 2) ? 1 : -1;
-		MuzzleRotation.Yaw += 15.0f * BloomCurrent * (MagazineCurrent % 3) ? 1 : -1;
+		FRotator MuzzleRotation = NewDirection.Rotation();
+
+		/*// skew to point slightly for bloom
+		float BloomMagnitude = BloomAmount * BloomCurrent
+		MuzzleRotation.Pitch += BloomAmount * BloomCurrent * (MagazineCurrent % 2) ? 1 : -1;
+		MuzzleRotation.Yaw += BloomAmount * BloomCurrent * (MagazineCurrent % 3) ? 1 : -1;*/
 		UWorld* World = GetWorld();
 		if (World)
 		{
@@ -100,10 +118,20 @@ void AWeapon::Fire(bool TriggerPulled)
 			SpawnParams.Instigator = Instigator;
 			//Spawn the projectile at the muzzle
 			AFPSProjectile* Projectile = World->SpawnActor<AFPSProjectile>(ProjectileClass, MuzzleLocation, MuzzleRotation, SpawnParams);
+			if (GEngine) {
+				GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Red, TEXT("firing2"));
+			}
+			
 			if (Projectile)
 			{
-				FVector LaunchDirection = MuzzleRotation.Vector();
+				FVector LaunchDirection = NewDirection;// MuzzleRotation.Vector();
 				Projectile->FireInDirection(LaunchDirection);
+				Projectile->Damage = Damage;
+				Projectile->Pierce = Pierce;
+				
+				if(Debug) DrawDebugLine(World, MuzzleLocation, MuzzleLocation.operator+(NewDirection*10000.0f), FColor(255, 0, 0), false, 5, 0, 1.0f);
+
+
 			}
 		}
 	}
@@ -170,7 +198,7 @@ void AWeapon::Tick(float DeltaTime)
 
 	ShootIntervalCurrent -= DeltaTime;
 	
-	BloomCurrent -= BloomDelta;
+	BloomCurrent -= BloomDelta*DeltaTime;
 	if(BloomCurrent < 0.0)
 		BloomCurrent = 0.0;
 }
