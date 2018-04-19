@@ -64,15 +64,15 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
 	int AmmoMax = 49;
-	UPROPERTY(BlueprintReadWrite)
+	UPROPERTY(BlueprintReadWrite, Category = "Weapon")
 	int AmmoCurrent = AmmoMax;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
 	int MagazineMax = 7;
-	UPROPERTY(BlueprintReadWrite)
+	UPROPERTY(BlueprintReadWrite, Category = "Weapon")
 	int MagazineCurrent = MagazineMax;
 
 	UPROPERTY(EditAnywhere, Category = "Weapon")
-	float ShootInterval = 1.0;
+	float ShootInterval = 0.1f;
 	float ShootIntervalCurrent = ShootInterval;
 
 	UPROPERTY(EditAnywhere, Category = "Weapon")
@@ -81,14 +81,26 @@ public:
 	bool Reloading;
 	
 	UPROPERTY(EditAnywhere, Category = "Weapon")
-	float Bloom = 0.25;
+	float Bloom = 0.35;
 	UPROPERTY(EditAnywhere, Category = "Weapon")
-	float BloomDelta = 0.01;
+	float BloomDelta = 0.9;
 	UPROPERTY(BlueprintReadWrite)
 	float BloomCurrent = 0.0;
 
+	UPROPERTY(EditAnywhere, Category = "Weapon")
+	float BloomAmount = .03;
+
+	UPROPERTY(EditAnywhere, Category = "Weapon")
+	float Damage = 12.5;
+
+	UPROPERTY(EditAnywhere, Category = "Weapon")
+	int Pierce = 3;
+
+	UPROPERTY(EditAnywhere, Category = "Weapon")
+	bool Debug = false;
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Gameplay")
-	FVector GunOffset;
+	FVector GunOffset = FVector(75.0f, 45.0f, 0.0f);
 	
 	UFUNCTION(BlueprintCallable, Category = "Weapon")
 	void Fire(bool TriggerPulled);

@@ -3,6 +3,7 @@
 #include "FPSProjectile.h"
 #include "FPSZombie.h"
 #include "Components/SphereComponent.h"
+#include "Kismet/GameplayStatics.h"
 #include "GameFramework/ProjectileMovementComponent.h"
 
 
@@ -63,7 +64,7 @@ void AFPSProjectile::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPr
 		
 	}
 
-		//Destroy();
+	//Destroy();
 }
 
 void AFPSProjectile::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
@@ -86,9 +87,16 @@ void AFPSProjectile::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor*
 		if (OtherActor->IsA(AFPSZombie::StaticClass())) {
 			AFPSZombie* zombie = (AFPSZombie*)OtherActor;
 
+			if (HitMarkerSound) {
+				UGameplayStatics::PlaySoundAtLocation(this, HitMarkerSound, UGameplayStatics::GetPlayerCharacter(GetWorld(), 0)->GetActorLocation());
+			}
+
+			if (GEngine) {
+				GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Red, SweepResult.BoneName.ToString());
+			}
 
 			bool headhit = false;
-			if (SweepResult.BoneName == FName(TEXT("Head"))) 
+			if (SweepResult.BoneName == FName(TEXT("Head")))
 			{
 				if (GEngine) {
 					GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Red, TEXT("Headshot!"));

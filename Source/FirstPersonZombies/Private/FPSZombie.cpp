@@ -23,7 +23,8 @@ void AFPSZombie::BeginPlay()
 
 	//Set the character movement speed.
 	UCharacterMovementComponent* MyCharacterMovement = GetCharacterMovement();
-	MyCharacterMovement->MaxWalkSpeed = ZombieMaxSpeed;
+	MyCharacterMovement->MaxWalkSpeed = 0.0;
+	MyCharacterMovement->RotationRate = FRotator(0.0f, 0.0f, 0.0f);
 	
 	//When this Zombie is created, add it to the ZombieList in our ZombieManager.
 	AFirstPersonZombiesGameMode* GameMode = (AFirstPersonZombiesGameMode*)GetWorld()->GetAuthGameMode();
@@ -40,14 +41,66 @@ void AFPSZombie::BeginPlay()
 	if (GEngine) {
 		GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Red, FString::FromInt(ZombieManagerReference->ZombieList.Num()));
 	}
+
+
+
+	SpawnAnimationTime = SpawnAnimation->GetPlayLength() + StandAnimation->GetPlayLength();
 }
 
 // Called every frame
 void AFPSZombie::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-	if (GEngine) {
-		//GEngine->AddOnScreenDebugMessage(-1, 0.5f, FColor::Green, FString::SanitizeFloat(HP));
+
+	UCharacterMovementComponent* MyCharacterMovement = GetCharacterMovement();
+	
+	if (ZombieState == ZombieStateEnum::VE_Spawning && SpawnAnimationTime > 0) {
+		SpawnAnimationTime -= DeltaTime;
+	}
+	else {
+		if (ZombieState == ZombieStateEnum::VE_Dead) {
+			DeathTimerCurrent -= DeltaTime;
+			if (DeathTimerCurrent <= 0) {
+				Die();
+			}
+		} else if (ZombieStateTarget != ZombieState) {
+
+			ZombieState = ZombieStateTarget;
+
+			switch (ZombieStateTarget) {
+				case ZombieStateEnum::VE_Spawning:
+					SpawnAnimationTime = SpawnAnimation->GetPlayLength() + StandAnimation->GetPlayLength();
+					MyCharacterMovement->MaxWalkSpeed = 0.0f;
+					MyCharacterMovement->RotationRate.Yaw = 0.0f;
+					break;
+				case ZombieStateEnum::VE_Walking:
+					MyCharacterMovement->MaxWalkSpeed = ZombieWalkSpeed;
+					MyCharacterMovement->RotationRate.Yaw = 90.0f;
+					break;
+				case ZombieStateEnum::VE_Running:
+					MyCharacterMovement->MaxWalkSpeed = ZombieRunSpeed;
+					MyCharacterMovement->RotationRate.Yaw = 90.0f;
+					break;
+				case ZombieStateEnum::VE_Crawling:
+					MyCharacterMovement->MaxWalkSpeed = ZombieCrawlSpeed;
+					FallAnimationTime = FallAnimation->GetPlayLength();
+					MyCharacterMovement->RotationRate.Yaw = 60.0f;
+					break;
+				case ZombieStateEnum::VE_Dead:
+					MyCharacterMovement->MaxWalkSpeed = 0.0f;
+					MyCharacterMovement->RotationRate.Yaw = 0.0f;
+					DeathTimerCurrent = DeathTimer;
+					break;
+			}
+		}else if (ZombieState == ZombieStateEnum::VE_Crawling) {
+			if (FallAnimationTime > 0) {
+				MyCharacterMovement->MaxWalkSpeed = 0.0f;
+				FallAnimationTime -= DeltaTime;
+			}
+			else {
+				MyCharacterMovement->MaxWalkSpeed = ZombieCrawlSpeed;
+			}
+		}
 	}
 }
 
@@ -69,14 +122,12 @@ bool AFPSZombie::Hurt_Implementation(float Damage, bool Headshot)
 
 	if (HP <= 0) 
 	{
-		Die();
+		ZombieStateTarget = ZombieStateEnum::VE_Dead;
 		return true;
 	}
 
 	return false;
 }
-
-
 
 bool AFPSZombie::Die_Implementation()
 {
