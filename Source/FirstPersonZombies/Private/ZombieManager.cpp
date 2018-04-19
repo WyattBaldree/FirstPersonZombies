@@ -220,6 +220,6 @@ bool AZombieManager::NewZombie()
 
 void AZombieManager::KillAll()
 {
-	while(ZombieList.Num() > 0)
-		ZombieList.Last(0)->Die();
+	for(auto& zombie : ZombieList)
+		zombie->ZombieState = ZombieStateEnum::VE_Dead;
 }
