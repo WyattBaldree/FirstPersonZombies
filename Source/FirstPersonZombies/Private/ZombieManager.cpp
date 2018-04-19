@@ -221,5 +221,5 @@ bool AZombieManager::NewZombie()
 void AZombieManager::KillAll()
 {
 	for(auto& zombie : ZombieList)
-		zombie->ZombieState = ZombieStateEnum::VE_Dead;
+		zombie->Hurt(zombie->MaxHP, false);
 }
