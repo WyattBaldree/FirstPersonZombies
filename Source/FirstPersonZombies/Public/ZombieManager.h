@@ -6,6 +6,7 @@
 #include "GameFramework/Actor.h"
 #include "FPSZombie.h"
 #include "ZombieSpawner.h"
+#include "Components/AudioComponent.h"
 #include "ZombieManager.generated.h"
 
 
@@ -95,6 +96,26 @@ public:
 		The higher the number, the farther away zombies can spawn. */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Gameplay")
 	int NumRandomSpawners = 10;
+
+	/** The amount of time before the next round starts */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Gameplay")
+	float StartRoundTime = 10;
+
+	/** The amount of time before the next round starts */
+	UPROPERTY(BlueprintReadOnly, Category = "Gameplay")
+	float StartRoundTimeCurrent = 0;
+
+	/** Sound to play each time we start a new round */
+	UPROPERTY(EditDefaultsOnly, Category = "Gameplay")
+	USoundBase* StartRoundSound;
+
+	UAudioComponent * StartSoundComponent;
+
+	/** Sound to play while we are playing the game */
+	UPROPERTY(EditDefaultsOnly, Category = "Gameplay")
+	USoundBase* AmbientSound;
+
+	UAudioComponent * AmbientSoundComponent;
 
 	/****************** Wave Size *********************/
 

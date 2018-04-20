@@ -17,6 +17,16 @@ AZombieManager::AZombieManager()
 void AZombieManager::BeginPlay()
 {
 	Super::BeginPlay();
+
+	StartSoundComponent = UGameplayStatics::SpawnSound2D(GetWorld(), StartRoundSound);
+	StartSoundComponent->bAutoDestroy = false;
+	StartSoundComponent->bIsUISound = false;
+	StartSoundComponent->Stop();
+
+	AmbientSoundComponent = UGameplayStatics::SpawnSound2D(GetWorld(), AmbientSound);
+	AmbientSoundComponent->bAutoDestroy = false;
+	AmbientSoundComponent->bIsUISound = false;
+
 	StartWave();
 }
 
@@ -73,6 +83,14 @@ void AZombieManager::Tick(float DeltaTime)
 
 		if (CurrentWaveCount <= 0) EndWave();
 	}
+
+	if (WaveState == EWaveStateEnum::VE_Starting) {
+		StartRoundTimeCurrent -= DeltaTime;
+		if (StartRoundTimeCurrent <= 0) {
+			WaveState = EWaveStateEnum::VE_InProgress;
+			StartSoundComponent->FadeOut(2.0, 0.0f);
+		}
+	}
 }
 
 void AZombieManager::StartWave()
@@ -81,14 +99,13 @@ void AZombieManager::StartWave()
 	CurrentWaveCount = GetWaveSize(Wave);
 	CurrentWaveSupply = CurrentWaveCount;
 
+	StartRoundTimeCurrent = StartRoundTime;
+
 	if (GEngine) {
 		GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Yellow, TEXT("Starting Wave: ") + FString::FromInt(Wave));
 	}
 
-	// Here we would put anything that needs to happen as a wave is starting up.
-	// i.e. hud elements and sound effects.
-
-	WaveState = EWaveStateEnum::VE_InProgress;
+	StartSoundComponent->Play(0.0f);
 }
 
 void AZombieManager::EndWave()

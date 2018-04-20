@@ -52,9 +52,11 @@ void AFPSZombie::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+
+
 	UCharacterMovementComponent* MyCharacterMovement = GetCharacterMovement();
 	
-	if (ZombieState == ZombieStateEnum::VE_Spawning && SpawnAnimationTime > 0) {
+	if (ZombieState == ZombieStateEnum::VE_Spawning && SpawnAnimationTime > 0 && HP >= 0) {
 		SpawnAnimationTime -= DeltaTime;
 	}
 	else {

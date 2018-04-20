@@ -56,4 +56,12 @@ public:
 	/** Sound to play each time we hit a zombie */
 	UPROPERTY(EditDefaultsOnly, Category = "Gameplay")
 	USoundBase* HitMarkerSound;
+
+	/** Particle to spawn when we shoot something */
+	UPROPERTY(EditDefaultsOnly, Category = "Gameplay")
+	UParticleSystem* HitParticle;
+
+	/** Particle to spawn when we shoot a zombie */
+	UPROPERTY(EditDefaultsOnly, Category = "Gameplay")
+	UParticleSystem* BloodParticle;
 };
