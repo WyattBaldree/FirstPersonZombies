@@ -107,6 +107,10 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Gameplay")
 	UAnimSequence* CrawlAnimation;
 
+	/** AnimMontage to play when we crawl */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Gameplay")
+	UAnimSequence* AttackAnimation;
+
 	UPROPERTY(EditDefaultsOnly, Category = "Gameplay")
 	float SpawnAnimationTime;
 
@@ -117,6 +121,9 @@ public:
 	float DeathTimer = 5;
 
 	float DeathTimerCurrent = DeathTimer;
+
+	UPROPERTY(BlueprintReadWrite, Category = "Gameplay")
+	bool Attacking = false;
 	
 private:
 	AZombieManager* ZombieManagerReference;

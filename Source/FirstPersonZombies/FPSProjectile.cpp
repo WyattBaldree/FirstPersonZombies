@@ -19,6 +19,7 @@ AFPSProjectile::AFPSProjectile()
 	// Use a sphere as a simple collision representation.
 	CollisionComponent = CreateDefaultSubobject<USphereComponent>(TEXT("SphereComponent"));
 	CollisionComponent->BodyInstance.SetCollisionProfileName(TEXT("FPSProjectile"));
+	CollisionComponent->OnComponentHit.AddDynamic(this, &AFPSProjectile::OnHit);
 	CollisionComponent->OnComponentBeginOverlap.AddDynamic(this, &AFPSProjectile::OnOverlapBegin);	// set up a notification for when this component hits something blocking
 	// Set the sphere's collision radius.
 	CollisionComponent->InitSphereRadius(15.0f);
@@ -29,8 +30,8 @@ AFPSProjectile::AFPSProjectile()
 
 	ProjectileMovementComponent = CreateDefaultSubobject<UProjectileMovementComponent>(TEXT("ProjectileMovementComponent"));
 	ProjectileMovementComponent->UpdatedComponent = CollisionComponent;
-	ProjectileMovementComponent->InitialSpeed = 3000.0f;
-	ProjectileMovementComponent->MaxSpeed = 3000.0f;
+	ProjectileMovementComponent->InitialSpeed = 9000.0f;
+	ProjectileMovementComponent->MaxSpeed = 9000.0f;
 	ProjectileMovementComponent->bRotationFollowsVelocity = true;
 }
 
@@ -63,12 +64,17 @@ void AFPSProjectile::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPr
 
 		
 	}
+	FVector SpawnLocation = Hit.ImpactPoint;
+	FRotator SpawnRotation = Hit.ImpactNormal.Rotation();
+	UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), HitParticle, SpawnLocation, SpawnRotation, true);
 
-	//Destroy();
+	Destroy();
 }
 
 void AFPSProjectile::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
+
+	
 	
 	// Other Actor is the actor that triggered the event. Check that is not ourself.  
 	if ((OtherActor != nullptr) && (OtherActor != this) && (OtherComp != nullptr))
@@ -106,6 +112,15 @@ void AFPSProjectile::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor*
 			zombie->Hurt(Damage, headhit);
 
 			//"FRotator rotPelvis = Mesh->MeshGetInstance(this))->GetBoneRotation(FName(TEXT("pelvis")));"
+
+			FVector SpawnLocation = SweepResult.ImpactPoint;
+			FRotator SpawnRotation = SweepResult.ImpactNormal.Rotation();
+			UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), BloodParticle, SpawnLocation, SpawnRotation, true);
+		}
+		else {
+			FVector SpawnLocation = SweepResult.ImpactPoint;
+			FRotator SpawnRotation = SweepResult.ImpactNormal.Rotation();
+			UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), HitParticle, SpawnLocation, SpawnRotation, true);
 		}
 	}
 	if (hitlength >= Pierce) Destroy();
