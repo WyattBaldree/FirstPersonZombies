@@ -146,7 +146,7 @@ void AWeapon::Fire(bool TriggerPulled)
 
 void AWeapon::Reload()
 {
-	if(MagazineCurrent == MagazineMax || AmmoCurrent <= 0) return;
+	if(MagazineCurrent == MagazineMax || (!IsSideArm && AmmoCurrent <= 0)) return;
 	
 	// try to play the reload sound effect
 	if (ReloadSound)
@@ -183,7 +183,7 @@ void AWeapon::Tick(float DeltaTime)
 		{
 			Reloading = false;
 			int delta = MagazineMax - MagazineCurrent;
-			if(AmmoCurrent >= delta)
+			if(AmmoCurrent >= delta || IsSideArm)
 			{
 				MagazineCurrent += delta;
 				AmmoCurrent -= delta;
