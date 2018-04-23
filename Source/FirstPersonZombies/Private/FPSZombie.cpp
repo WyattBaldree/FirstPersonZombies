@@ -30,7 +30,7 @@ void AFPSZombie::BeginPlay()
 	AFirstPersonZombiesGameMode* GameMode = (AFirstPersonZombiesGameMode*)GetWorld()->GetAuthGameMode();
 	ZombieManagerReference = GameMode->MyZombieManager;
 
-	//if we don't already have an NPC manager, go ahead and create one.
+	//if we don't already have a Zombie manager, go ahead and create one.
 	if (ZombieManagerReference == NULL) {
 		GameMode->MakeZombieManager();
 		ZombieManagerReference = GameMode->MyZombieManager;
@@ -42,8 +42,7 @@ void AFPSZombie::BeginPlay()
 		GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Red, FString::FromInt(ZombieManagerReference->ZombieList.Num()));
 	}
 
-
-
+	// This variable represents how long the zombie takes to spawn based on animation times.
 	SpawnAnimationTime = SpawnAnimation->GetPlayLength() + StandAnimation->GetPlayLength();
 }
 
@@ -77,11 +76,11 @@ void AFPSZombie::Tick(float DeltaTime)
 					break;
 				case ZombieStateEnum::VE_Walking:
 					MyCharacterMovement->MaxWalkSpeed = ZombieWalkSpeed;
-					MyCharacterMovement->RotationRate.Yaw = 90.0f;
+					MyCharacterMovement->RotationRate.Yaw = 120.0f;
 					break;
 				case ZombieStateEnum::VE_Running:
 					MyCharacterMovement->MaxWalkSpeed = ZombieRunSpeed;
-					MyCharacterMovement->RotationRate.Yaw = 90.0f;
+					MyCharacterMovement->RotationRate.Yaw = 120.0f;
 					break;
 				case ZombieStateEnum::VE_Crawling:
 					MyCharacterMovement->MaxWalkSpeed = ZombieCrawlSpeed;
@@ -126,6 +125,14 @@ bool AFPSZombie::Hurt_Implementation(float Damage, bool Headshot)
 	{
 		ZombieStateTarget = ZombieStateEnum::VE_Dead;
 		return true;
+	}
+
+	if (ZombieState == ZombieStateEnum::VE_Walking && FMath::RandRange(0.0f, 1.0f) > WalkToRunChance) {
+		ZombieStateTarget = ZombieStateEnum::VE_Running;
+	}
+
+	if ((ZombieState == ZombieStateEnum::VE_Running || ZombieState == ZombieStateEnum::VE_Walking) && CrippleDamage > CrippleRatio*MaxHP) {
+		ZombieStateTarget = ZombieStateEnum::VE_Crawling;
 	}
 
 	return false;

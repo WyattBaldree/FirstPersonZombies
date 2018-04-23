@@ -54,6 +54,17 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Gameplay")
 	float ZombieCrawlSpeed = 150;
 
+	/** This is the percentage of damamge that must be done to the zombies legs in order to cause them to crawl. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Gameplay", meta = (ClampMin = "0.0", ClampMax = "1.0", UIMin = "0.0", UIMax = "1.0"))
+	float CrippleRatio = .75;
+
+	/** This is the amount of damage that has been done to the zombies legs. */
+	float CrippleDamage = 0.0;
+
+	/** This is the percentage chance that a zombie will begin running when you shoot him. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Gameplay", meta = (ClampMin = "0.0", ClampMax = "1.0", UIMin = "0.0", UIMax = "1.0"))
+	float WalkToRunChance = .50;
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Gameplay")
 	float CurrentDelta = 0;
 

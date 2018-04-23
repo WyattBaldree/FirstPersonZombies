@@ -109,6 +109,14 @@ void AFPSProjectile::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor*
 				}
 				headhit = true;
 			}
+			else if (SweepResult.BoneName == FName(TEXT("RightFoot")) || 
+					 SweepResult.BoneName == FName(TEXT("RightLeg")) ||	
+					 SweepResult.BoneName == FName(TEXT("RightUpLeg")) || 
+					 SweepResult.BoneName == FName(TEXT("LeftFoot")) || 
+					 SweepResult.BoneName == FName(TEXT("LeftLeg")) || 
+					 SweepResult.BoneName == FName(TEXT("LeftUpLeg"))) {
+				zombie->CrippleDamage += Damage;
+			}
 			zombie->Hurt(Damage, headhit);
 
 			//"FRotator rotPelvis = Mesh->MeshGetInstance(this))->GetBoneRotation(FName(TEXT("pelvis")));"

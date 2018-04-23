@@ -18,14 +18,24 @@ void AZombieManager::BeginPlay()
 {
 	Super::BeginPlay();
 
-	StartSoundComponent = UGameplayStatics::SpawnSound2D(GetWorld(), StartRoundSound);
-	StartSoundComponent->bAutoDestroy = false;
-	StartSoundComponent->bIsUISound = false;
-	StartSoundComponent->Stop();
+	if (StartRoundSound) {
+		StartSoundComponent = UGameplayStatics::SpawnSound2D(GetWorld(), StartRoundSound);
+		StartSoundComponent->bAutoDestroy = false;
+		StartSoundComponent->bIsUISound = false;
+		StartSoundComponent->Stop();
+	}
+	else {
+		if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Red, TEXT("StartRoundSound not set in zombie manager."));
+	}
 
-	AmbientSoundComponent = UGameplayStatics::SpawnSound2D(GetWorld(), AmbientSound);
-	AmbientSoundComponent->bAutoDestroy = false;
-	AmbientSoundComponent->bIsUISound = false;
+	if (AmbientSound) {
+		AmbientSoundComponent = UGameplayStatics::SpawnSound2D(GetWorld(), AmbientSound);
+		AmbientSoundComponent->bAutoDestroy = false;
+		AmbientSoundComponent->bIsUISound = false;
+	}
+	else {
+		if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Red, TEXT("AmbientSound not set in zombie manager."));
+	}
 
 	StartWave();
 }
@@ -88,7 +98,7 @@ void AZombieManager::Tick(float DeltaTime)
 		StartRoundTimeCurrent -= DeltaTime;
 		if (StartRoundTimeCurrent <= 0) {
 			WaveState = EWaveStateEnum::VE_InProgress;
-			StartSoundComponent->FadeOut(2.0, 0.0f);
+			if(StartSoundComponent) StartSoundComponent->FadeOut(2.0, 0.0f);
 		}
 	}
 }
@@ -105,7 +115,7 @@ void AZombieManager::StartWave()
 		GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Yellow, TEXT("Starting Wave: ") + FString::FromInt(Wave));
 	}
 
-	StartSoundComponent->Play(0.0f);
+	if (StartSoundComponent) StartSoundComponent->Play(0.0f);
 }
 
 void AZombieManager::EndWave()
@@ -126,6 +136,11 @@ float AZombieManager::GetSpawnInterval(int CurrentWave)
 float AZombieManager::GetZombieHealth(int CurrentWave)
 {
 	return ZombieHealthBase + ((CurrentWave - 1) * ZombieHealthScaling);
+}
+
+float AZombieManager::GetWalkerChance(int CurrentWave)
+{
+	return WalkerChanceBase + ((CurrentWave - 1) *WalkerChanceScaling);
 }
 
 float AZombieManager::GetWaveSize(int CurrentWave)
@@ -160,6 +175,13 @@ bool AZombieManager::SpawnZombie(AZombieSpawner* Spawner)
 				NewZombie->MaxHP = GetZombieHealth(Wave);
 				NewZombie->HP = NewZombie->MaxHP;
 				NewZombie->TargetActor = UGameplayStatics::GetPlayerCharacter(GetWorld(), 0);
+				if (FMath::RandRange(0.0f, 1.0f) > GetWalkerChance(Wave)) {
+					NewZombie->ZombieStateTarget = ZombieStateEnum::VE_Running;
+				}
+				else {
+					NewZombie->ZombieStateTarget = ZombieStateEnum::VE_Walking;
+				}
+
 				return true;
 			}
 			else
