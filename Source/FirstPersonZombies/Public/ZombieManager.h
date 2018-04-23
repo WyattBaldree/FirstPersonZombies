@@ -117,6 +117,20 @@ public:
 
 	UAudioComponent * AmbientSoundComponent;
 
+	/****************** Walker Chance *********************/
+	
+	/** This function returns the chance that a zombie will start as a walker. */
+	UFUNCTION()
+	float GetWalkerChance(int CurrentWave);
+
+	/** The change in chance to be a walker for each consecutive wave. */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Gameplay")
+	float WalkerChanceScaling = -0.15f;
+
+	/** Thethe chance a zombie will spawn as a walker for the first wave. */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Gameplay")
+	float WalkerChanceBase = 1.0f;
+
 	/****************** Wave Size *********************/
 
 	/** This function returns the number of zombies that should spawn before a wave is over. */ 
