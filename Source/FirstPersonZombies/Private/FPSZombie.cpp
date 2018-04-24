@@ -43,7 +43,7 @@ void AFPSZombie::BeginPlay()
 	}
 
 	// This variable represents how long the zombie takes to spawn based on animation times.
-	SpawnAnimationTime = SpawnAnimation->GetPlayLength() + StandAnimation->GetPlayLength();
+	SpawnAnimationTime = SpawnAnimation->GetPlayLength()/SpawnAnimation->RateScale + StandAnimation->GetPlayLength()/StandAnimation->RateScale;
 }
 
 // Called every frame
