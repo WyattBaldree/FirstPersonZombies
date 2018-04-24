@@ -73,24 +73,29 @@ void AFPSZombie::Tick(float DeltaTime)
 					SpawnAnimationTime = SpawnAnimation->GetPlayLength() + StandAnimation->GetPlayLength();
 					MyCharacterMovement->MaxWalkSpeed = 0.0f;
 					MyCharacterMovement->RotationRate.Yaw = 0.0f;
+					SetActorEnableCollision(true);
 					break;
 				case ZombieStateEnum::VE_Walking:
 					MyCharacterMovement->MaxWalkSpeed = ZombieWalkSpeed;
 					MyCharacterMovement->RotationRate.Yaw = 120.0f;
+					SetActorEnableCollision(true);
 					break;
 				case ZombieStateEnum::VE_Running:
 					MyCharacterMovement->MaxWalkSpeed = ZombieRunSpeed;
 					MyCharacterMovement->RotationRate.Yaw = 120.0f;
+					SetActorEnableCollision(true);
 					break;
 				case ZombieStateEnum::VE_Crawling:
 					MyCharacterMovement->MaxWalkSpeed = ZombieCrawlSpeed;
 					FallAnimationTime = FallAnimation->GetPlayLength();
 					MyCharacterMovement->RotationRate.Yaw = 60.0f;
+					SetActorEnableCollision(true);
 					break;
 				case ZombieStateEnum::VE_Dead:
 					MyCharacterMovement->MaxWalkSpeed = 0.0f;
 					MyCharacterMovement->RotationRate.Yaw = 0.0f;
 					DeathTimerCurrent = DeathTimer;
+					SetActorEnableCollision(false);
 					break;
 			}
 		}else if (ZombieState == ZombieStateEnum::VE_Crawling) {
@@ -116,7 +121,7 @@ void AFPSZombie::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent
 bool AFPSZombie::Hurt_Implementation(float Damage, bool Headshot)
 {
 	if (Headshot) {
-		HP -= Damage*2.5;
+		HP -= Damage*1.9;
 	}else{
 		HP -= Damage;
 	}
