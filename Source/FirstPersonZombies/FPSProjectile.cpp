@@ -19,7 +19,9 @@ AFPSProjectile::AFPSProjectile()
 	// Use a sphere as a simple collision representation.
 	CollisionComponent = CreateDefaultSubobject<USphereComponent>(TEXT("SphereComponent"));
 	CollisionComponent->BodyInstance.SetCollisionProfileName(TEXT("FPSProjectile"));
-	CollisionComponent->OnComponentHit.AddDynamic(this, &AFPSProjectile::OnHit);
+	CollisionComponent->SetNotifyRigidBodyCollision(true);
+	//You only need to register the OnHit function
+	CollisionComponent->OnComponentHit.AddDynamic(this, &AFPSProjectile::OnCompHit);
 	CollisionComponent->OnComponentBeginOverlap.AddDynamic(this, &AFPSProjectile::OnOverlapBegin);	// set up a notification for when this component hits something blocking
 	// Set the sphere's collision radius.
 	CollisionComponent->InitSphereRadius(15.0f);
@@ -55,7 +57,7 @@ void AFPSProjectile::FireInDirection(const FVector & ShootDirection)
 }
 
 //function that is called when the projectile hits something
-void AFPSProjectile::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComponent, FVector NormalImpulse, const FHitResult& Hit)
+void AFPSProjectile::OnCompHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComponent, FVector NormalImpulse, const FHitResult& Hit)
 {
 	// Only add impulse and destroy projectile if we hit a physics
 	if ((OtherActor != NULL) && (OtherActor != this) && (OtherComponent != NULL) && OtherComponent->IsSimulatingPhysics())
@@ -70,6 +72,24 @@ void AFPSProjectile::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPr
 
 	Destroy();
 }
+
+void AFPSProjectile::ReceiveHit(UPrimitiveComponent * MyComp, AActor * Other, UPrimitiveComponent * OtherComp, bool bSelfMoved, FVector HitLocation, FVector HitNormal, FVector NormalImpulse, const FHitResult & Hit)
+{
+	FVector SpawnLocation = Hit.ImpactPoint;
+	FRotator SpawnRotation = Hit.ImpactNormal.Rotation();
+	UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), HitParticle, SpawnLocation, SpawnRotation, true);
+
+	Destroy();
+}
+
+/*void AFPSProjectile::ReceiveHit(UPrimitiveComponent * MyComp, AActor * OtherActor, UPrimitiveComponent * OtherComp, FVector NormalImpulse, const FHitResult & Hit)
+{
+	FVector SpawnLocation = Hit.ImpactPoint;
+	FRotator SpawnRotation = Hit.ImpactNormal.Rotation();
+	UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), HitParticle, SpawnLocation, SpawnRotation, true);
+
+	Destroy();
+}*/
 
 void AFPSProjectile::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
@@ -120,15 +140,10 @@ void AFPSProjectile::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor*
 			zombie->Hurt(Damage, headhit);
 
 			//"FRotator rotPelvis = Mesh->MeshGetInstance(this))->GetBoneRotation(FName(TEXT("pelvis")));"
-
-			FVector SpawnLocation = SweepResult.ImpactPoint;
+			FVector CameraLocation = UGameplayStatics::GetPlayerCameraManager(GetWorld(), 0)->GetCameraLocation();
+			FVector SpawnLocation = SweepResult.ImpactPoint + (CameraLocation - SweepResult.ImpactPoint).GetSafeNormal(0.000001) * 40.0;
 			FRotator SpawnRotation = SweepResult.ImpactNormal.Rotation();
 			UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), BloodParticle, SpawnLocation, SpawnRotation, true);
-		}
-		else {
-			FVector SpawnLocation = SweepResult.ImpactPoint;
-			FRotator SpawnRotation = SweepResult.ImpactNormal.Rotation();
-			UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), HitParticle, SpawnLocation, SpawnRotation, true);
 		}
 	}
 	if (hitlength >= Pierce) Destroy();
