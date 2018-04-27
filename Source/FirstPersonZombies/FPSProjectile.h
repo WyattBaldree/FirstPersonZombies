@@ -38,8 +38,11 @@ public:
 
 	//Function that is called when we hit something
 	UFUNCTION()
-	void OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
-	
+	void OnCompHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
+
+	UFUNCTION()
+	void ReceiveHit(class UPrimitiveComponent* MyComp, AActor* Other, class UPrimitiveComponent* OtherComp, bool bSelfMoved, FVector HitLocation, FVector HitNormal, FVector NormalImpulse, const FHitResult& Hit);
+
 	// sweg
 	UFUNCTION()
 	void OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
@@ -56,6 +59,13 @@ public:
 	/** Sound to play each time we hit a zombie */
 	UPROPERTY(EditDefaultsOnly, Category = "Gameplay")
 	USoundBase* HitMarkerSound;
+
+	/** Sound to play each time we hit a zombie */
+	UPROPERTY(EditDefaultsOnly, Category = "Gameplay")
+	USoundBase* HeadHitMarkerSound;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Gameplay", meta = (ClampMin = "0.0", ClampMax = "1.0", UIMin = "0.0", UIMax = "1.0"))
+	float PitchRandomness = 0.0f;
 
 	/** Particle to spawn when we shoot something */
 	UPROPERTY(EditDefaultsOnly, Category = "Gameplay")
