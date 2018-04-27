@@ -60,6 +60,13 @@ public:
 	UPROPERTY(EditDefaultsOnly, Category = "Gameplay")
 	USoundBase* HitMarkerSound;
 
+	/** Sound to play each time we hit a zombie */
+	UPROPERTY(EditDefaultsOnly, Category = "Gameplay")
+	USoundBase* HeadHitMarkerSound;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Gameplay", meta = (ClampMin = "0.0", ClampMax = "1.0", UIMin = "0.0", UIMax = "1.0"))
+	float PitchRandomness = 0.0f;
+
 	/** Particle to spawn when we shoot something */
 	UPROPERTY(EditDefaultsOnly, Category = "Gameplay")
 	UParticleSystem* HitParticle;

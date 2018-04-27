@@ -113,10 +113,6 @@ void AFPSProjectile::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor*
 		if (OtherActor->IsA(AFPSZombie::StaticClass())) {
 			AFPSZombie* zombie = (AFPSZombie*)OtherActor;
 
-			if (HitMarkerSound) {
-				UGameplayStatics::PlaySoundAtLocation(this, HitMarkerSound, UGameplayStatics::GetPlayerCharacter(GetWorld(), 0)->GetActorLocation());
-			}
-
 			if (GEngine) {
 				GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Red, SweepResult.BoneName.ToString());
 			}
@@ -138,6 +134,14 @@ void AFPSProjectile::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor*
 				zombie->CrippleDamage += Damage;
 			}
 			zombie->Hurt(Damage, headhit);
+			if (headhit) {
+				if (HeadHitMarkerSound) {
+					UGameplayStatics::PlaySound2D(this, HeadHitMarkerSound, 1.0f, FMath::RandRange(1.0f - PitchRandomness, 1.0f + PitchRandomness));
+				}
+			}
+			if (HitMarkerSound) {
+				UGameplayStatics::PlaySound2D(this, HitMarkerSound, 1.0f, FMath::RandRange(1.0f - PitchRandomness, 1.0f + PitchRandomness));
+			}
 
 			//"FRotator rotPelvis = Mesh->MeshGetInstance(this))->GetBoneRotation(FName(TEXT("pelvis")));"
 			FVector CameraLocation = UGameplayStatics::GetPlayerCameraManager(GetWorld(), 0)->GetCameraLocation();
