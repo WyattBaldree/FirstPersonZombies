@@ -39,7 +39,7 @@ void AFPSZombie::BeginPlay()
 	ZombieManagerReference->ZombieList.Add(this);
 
 	if (GEngine) {
-		GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Red, FString::FromInt(ZombieManagerReference->ZombieList.Num()));
+		//GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Red, FString::FromInt(ZombieManagerReference->ZombieList.Num()));
 	}
 
 	// This variable represents how long the zombie takes to spawn based on animation times.

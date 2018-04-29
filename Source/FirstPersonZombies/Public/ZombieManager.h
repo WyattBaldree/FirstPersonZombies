@@ -185,7 +185,7 @@ public:
 	{
 		bool operator()(const AZombieSpawner* A, const AZombieSpawner* B) const
 		{
-			return A->DistanceFromPlayer > B->DistanceFromPlayer;
+			return A->DistanceFromPlayer < B->DistanceFromPlayer;
 		}
 	};
 

@@ -18,7 +18,7 @@ AFirstPersonZombiesGameMode::AFirstPersonZombiesGameMode()
 
 void AFirstPersonZombiesGameMode::MakeZombieManager() {
 	if (GEngine) {
-		GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Red, TEXT("BLLLLLAAAHH"));
+		//GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Red, TEXT("BLLLLLAAAHH"));
 	}
 	UWorld* World = GetWorld();
 	if (World)
@@ -51,7 +51,7 @@ void AFirstPersonZombiesGameMode::MakeZombieManager() {
 
 void AFirstPersonZombiesGameMode::MakeLootManager() {
 	if (GEngine) {
-		GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Red, TEXT("LOOOOOT!"));
+		//GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Red, TEXT("LOOOOOT!"));
 	}
 	UWorld* World = GetWorld();
 	if (World)
