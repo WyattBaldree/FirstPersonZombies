@@ -46,7 +46,7 @@ void AFPSCharacter::BeginPlay()
 	if (GEngine)
 	{
 		// Put up a debug message for five seconds. The -1 "Key" value (first argument) indicates that we will never need to update or refresh this message.
-		GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Red, TEXT("We are using FPSCharacter."));
+		//GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Red, TEXT("We are using FPSCharacter."));
 	}
 
 	if (StartingWeapon) {
@@ -224,29 +224,5 @@ void AFPSCharacter::Reload()
 
 void AFPSCharacter::DebugWyatt()
 {
-	if (GEngine) {
-		GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Red, TEXT("DebugWyatt!"));
-	}
 
-	if (DebugZombieSpawner == NULL) {
-		if (GEngine) {
-			GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Red, TEXT("DebugZombieSpawner not set!"));
-		}
-		return;
-	}
-
-
-	AFirstPersonZombiesGameMode* GameMode = (AFirstPersonZombiesGameMode*)GetWorld()->GetAuthGameMode();
-	AZombieManager* ZombieManager = GameMode->MyZombieManager;
-
-	if (ZombieManager) {
-		//ZombieManager->SpawnZombie(DebugZombieSpawner);
-		ZombieManager->StartWave();
-	}
-	else
-	{
-		if (GEngine) {
-			GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Red, TEXT("ZombieManager does not exist!"));
-		}
-	}
 }

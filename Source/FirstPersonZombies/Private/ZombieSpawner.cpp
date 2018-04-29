@@ -28,11 +28,6 @@ void AZombieSpawner::BeginPlay()
 	}
 	//Add the zombie to the ZombieList.
 	ZombieManagerReference->ZombieSpawnerList.Add(this);
-
-	if (GEngine) {
-		GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Purple, FString::FromInt(ZombieManagerReference->ZombieSpawnerList.Num()));
-	}
-	
 }
 
 // Called every frame

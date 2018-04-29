@@ -114,14 +114,14 @@ void AFPSProjectile::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor*
 			AFPSZombie* zombie = (AFPSZombie*)OtherActor;
 
 			if (GEngine) {
-				GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Red, SweepResult.BoneName.ToString());
+				//GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Red, SweepResult.BoneName.ToString());
 			}
 
 			bool headhit = false;
 			if (SweepResult.BoneName == FName(TEXT("Head")))
 			{
 				if (GEngine) {
-					GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Red, TEXT("Headshot!"));
+					//GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Red, TEXT("Headshot!"));
 				}
 				headhit = true;
 			}

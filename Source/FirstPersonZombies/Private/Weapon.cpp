@@ -44,7 +44,7 @@ void AWeapon::Fire(bool TriggerPulled)
 
 	if (Reloading) return;
 
-	if (!Reloading && MagazineCurrent <= 0 && AmmoCurrent > 0) {
+	if (!Reloading && MagazineCurrent <= 0 && (AmmoCurrent > 0 || IsSideArm)) {
 		Reload();
 		return;
 	}
@@ -69,7 +69,7 @@ void AWeapon::Fire(bool TriggerPulled)
 	}
 
 	if (GEngine) {
-		GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Red, TEXT("firing"));
+		//GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Red, TEXT("firing"));
 	}
 
 	// Attempt to fire a projectile.
@@ -119,7 +119,7 @@ void AWeapon::Fire(bool TriggerPulled)
 			//Spawn the projectile at the muzzle
 			AFPSProjectile* Projectile = World->SpawnActor<AFPSProjectile>(ProjectileClass, MuzzleLocation, MuzzleRotation, SpawnParams);
 			if (GEngine) {
-				GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Red, TEXT("firing2"));
+				//GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Red, TEXT("firing2"));
 			}
 			
 			if (Projectile)
@@ -146,7 +146,7 @@ void AWeapon::Fire(bool TriggerPulled)
 
 void AWeapon::Reload()
 {
-	if(MagazineCurrent == MagazineMax || (!IsSideArm && AmmoCurrent <= 0)) return;
+	if(MagazineCurrent == MagazineMax || (!IsSideArm && AmmoCurrent <= 0) || Reloading) return;
 	
 	// try to play the reload sound effect
 	if (ReloadSound)

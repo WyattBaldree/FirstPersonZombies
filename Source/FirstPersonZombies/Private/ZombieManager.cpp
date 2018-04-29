@@ -228,6 +228,10 @@ AZombieSpawner* AZombieManager::PickSpawner()
 	// Sort the list of active spawners by the distance variable they hold.
 	Algo::Sort(ActiveZombieSpawners, SpawnerSort());
 
+	for (int i = 0; i < ActiveZombieSpawners.Num(); ++i) {
+		UE_LOG(LogTemp, Warning, TEXT("Spawner %d distance is %f."), i, UGameplayStatics::GetPlayerCharacter(this, 0)->GetDistanceTo(ActiveZombieSpawners[i]));
+	}
+
 	int ChosenSpawnerIndex;
 	if (ActiveZombieSpawners.Num() < NumRandomSpawners) {
 		ChosenSpawnerIndex = FMath::RandRange(0, ActiveZombieSpawners.Num() - 1);
@@ -250,7 +254,7 @@ bool AZombieManager::NewZombie()
 	else {
 		if (GEngine)
 		{
-			GEngine->AddOnScreenDebugMessage(0, 5.0f, FColor::Red, TEXT("Trouble spawning a zombie in function NewZombie()"));
+			//GEngine->AddOnScreenDebugMessage(0, 5.0f, FColor::Red, TEXT("Trouble spawning a zombie in function NewZombie()"));
 		}
 		return false;
 	}
