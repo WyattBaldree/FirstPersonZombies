@@ -52,6 +52,9 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Gameplay")
 	UTexture2D* Display;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Gameplay")
+	TSubclassOf<class UCameraShake> CameraShake;
+
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Weapon")
 	bool Automatic = false;
 

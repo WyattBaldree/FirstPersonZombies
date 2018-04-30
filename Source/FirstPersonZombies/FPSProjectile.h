@@ -50,10 +50,7 @@ public:
 	AActor* hitlist[10];
 	int hitlength = 0;
 
-	UPROPERTY(EditAnywhere, Category = "Projectile")
-	float Damage = 12.5f;
-
-	UPROPERTY(EditAnywhere, Category = "Projectile")
+	float Damage = 12.5;
 	int Pierce = 3;
 
 	/** Sound to play each time we hit a zombie */
@@ -74,4 +71,16 @@ public:
 	/** Particle to spawn when we shoot a zombie */
 	UPROPERTY(EditDefaultsOnly, Category = "Gameplay")
 	UParticleSystem* BloodParticle;
+
+	/** Bullet hole to spawn when we shoot a zombie */
+	UPROPERTY(EditDefaultsOnly, Category = "Gameplay")
+	UMaterialInterface* BulletHoleFlesh;
+
+	/** Bullet hole to spawn when we shoot metal */
+	UPROPERTY(EditDefaultsOnly, Category = "Gameplay")
+	UMaterialInterface* BulletHoleMetal;
+
+	/** Bullet hole to spawn when we shoot rock */
+	UPROPERTY(EditDefaultsOnly, Category = "Gameplay")
+	UMaterialInterface* BulletHoleWall;
 };

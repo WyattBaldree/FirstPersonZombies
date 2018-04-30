@@ -75,10 +75,13 @@ void AZombieManager::Tick(float DeltaTime)
 
 		if (CurrentWaveSupply > 0) {
 			// increment our zombie spawning timer
-			SpawnTimer += DeltaTime;
-			if (SpawnTimer >= GetSpawnInterval(Wave)) {
-				SpawnTimer -= GetSpawnInterval(Wave);
 
+
+
+			SpawnTimer -= DeltaTime;
+			if (SpawnTimer <=  0) {
+				SpawnTimer = (GetSpawnInterval(Wave) <= 0) ? 0.1 : GetSpawnInterval(Wave);
+				
 				// Attempt to spawn a zombie 100 times.
 				int i = 0;
 				while (!NewZombie()) {
