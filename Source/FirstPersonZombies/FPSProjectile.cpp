@@ -79,6 +79,10 @@ void AFPSProjectile::ReceiveHit(UPrimitiveComponent * MyComp, AActor * Other, UP
 	FRotator SpawnRotation = Hit.ImpactNormal.Rotation();
 	UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), HitParticle, SpawnLocation, SpawnRotation, true);
 
+	if (BulletHoleMetal) {
+		UGameplayStatics::SpawnDecalAttached(BulletHoleMetal, FVector(10, 10, 10), OtherComp, NAME_None, HitLocation, HitNormal.Rotation(), EAttachLocation::KeepWorldPosition, 5.0);
+	}
+
 	Destroy();
 }
 
@@ -115,6 +119,10 @@ void AFPSProjectile::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor*
 
 			if (GEngine) {
 				//GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Red, SweepResult.BoneName.ToString());
+			}
+
+			if (BulletHoleFlesh) {
+				UGameplayStatics::SpawnDecalAttached(BulletHoleFlesh, FVector(10, 10, 10), OtherComp, NAME_None, SweepResult.ImpactPoint, SweepResult.ImpactNormal.Rotation() , EAttachLocation::KeepWorldPosition, 5.0);
 			}
 
 			bool headhit = false;

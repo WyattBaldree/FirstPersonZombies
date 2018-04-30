@@ -53,6 +53,10 @@ void AWeapon::Fire(bool TriggerPulled)
 
 	AnimInstance->StopSlotAnimation(0, "Arms");
 
+	if (CameraShake) {
+		UGameplayStatics::PlayWorldCameraShake(this, CameraShake, GetActorLocation(), 0.0f, 5000.0f);
+	}
+
 	// try and play a firing animation if specified
 	if (FireAnimation)
 	{
