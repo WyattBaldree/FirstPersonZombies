@@ -55,7 +55,6 @@ void AFPSZombie::Tick(float DeltaTime)
 	
 	switch (ZombieState) {
 	case ZombieStateEnum::VE_Spawning:
-		//SpawnAnimationTime = SpawnAnimation->GetPlayLength() + StandAnimation->GetPlayLength();
 		MyCharacterMovement->MaxWalkSpeed = 0.0f;
 		MyCharacterMovement->RotationRate.Yaw = 0.0f;
 		SetActorEnableCollision(true);
@@ -72,14 +71,12 @@ void AFPSZombie::Tick(float DeltaTime)
 		break;
 	case ZombieStateEnum::VE_Crawling:
 		MyCharacterMovement->MaxWalkSpeed = ZombieCrawlSpeed;
-		FallAnimationTime = FallAnimation->GetPlayLength();
 		MyCharacterMovement->RotationRate.Yaw = 60.0f;
 		SetActorEnableCollision(true);
 		break;
 	case ZombieStateEnum::VE_Dead:
 		MyCharacterMovement->MaxWalkSpeed = 0.0f;
 		MyCharacterMovement->RotationRate.Yaw = 0.0f;
-		//DeathTimerCurrent = DeathTimer;
 		SetActorEnableCollision(false);
 		break;
 	}
@@ -106,6 +103,9 @@ void AFPSZombie::Tick(float DeltaTime)
 			}
 			else if (ZombieState == ZombieStateEnum::VE_Dead)  {
 				DeathTimerCurrent = DeathTimer;
+			}
+			else if (ZombieState == ZombieStateEnum::VE_Crawling){
+				FallAnimationTime = FallAnimation->GetPlayLength();
 			}
 
 		}else if (ZombieState == ZombieStateEnum::VE_Crawling) {
