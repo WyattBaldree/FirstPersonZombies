@@ -10,6 +10,7 @@
 #include "FPSCharacter.h"
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
+#include "GameFramework/CharacterMovementComponent.h"
 #include "FPSProjectile.h"
 #include "Kismet/GameplayStatics.h"
 #include "Animation/AnimInstance.h"
@@ -29,14 +30,32 @@ AFPSCharacter::AFPSCharacter()
 	// Attach the camera component to our capsule component.
 	FPSCameraComponent->SetupAttachment(GetCapsuleComponent());
 	// Set the offset to be approximately in the characters eyes
-	FPSCameraComponent->SetRelativeLocation(FVector(0, 0, 50.0f + BaseEyeHeight));
+	FPSCameraComponent->SetRelativeLocation(FVector(0, 0, 20 + BaseEyeHeight));
 	// Allow the controller to rotate our camera
 	FPSCameraComponent->bUsePawnControlRotation = true;
+
+	// The collision profile of the object
+	UCapsuleComponent* Capsule = GetCapsuleComponent();
+	Capsule->SetCollisionProfileName(TEXT("FPSPawn"));
+	//Capsule->OnComponentBeginOverlap.AddDynamic(this, &AFPSCharacter::OnOverlapBegin);
+
+	InteractCapsuleComponent = CreateDefaultSubobject<UCapsuleComponent>(TEXT("SphereComponent"));
+	InteractCapsuleComponent->BodyInstance.SetCollisionProfileName(TEXT("FPSPlayerTrigger"));
+	InteractCapsuleComponent->OnComponentBeginOverlap.AddDynamic(this, &AFPSCharacter::OnOverlapBegin);
+
+	//Capsule->OnComponentEndOverlap.AddDynamic(this, &AFPSCharacter::OnOverlapEnd);
+
+	UE_LOG(LogTemp, Warning, TEXT("Num overlapping interactors: %i"), InteractableArray.Num());
 	
+	// Default move speed
+	GetCharacterMovement()->MaxWalkSpeed = 500.0f;
+
 	// The owning player doesn't see the regular (third-person) body mesh.
 	GetMesh()->SetOwnerNoSee(true);
 
 	Weapons.Init(NULL, 2);
+	//InteractableArray.Init(NULL, 1);
+	
 }
 
 // Called when the game starts or when spawned
@@ -155,6 +174,8 @@ void AFPSCharacter::EquipSideArm(AWeapon * weapon)
 	}
 }
 
+
+
 // Called every frame
 void AFPSCharacter::Tick(float DeltaTime)
 {
@@ -225,4 +246,21 @@ void AFPSCharacter::Reload()
 void AFPSCharacter::DebugWyatt()
 {
 
+}
+
+void AFPSCharacter::OnOverlapBegin(UPrimitiveComponent * OverlappedComp, AActor * OtherActor, UPrimitiveComponent * OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult)
+{
+	if (OtherActor->IsA(AInteractableActor::StaticClass())) {
+		InteractableArray.Add((AInteractableActor*)OtherActor);
+	}
+	//UE_LOG(LogTemp, Warning, TEXT("Num overlapping interactors: %i"), InteractableArray.Num());
+	UE_LOG(LogTemp, Warning, TEXT("Num overl"));
+
+}
+
+void AFPSCharacter::OnOverlapEnd(UPrimitiveComponent * OverlappedComp, AActor * OtherActor, UPrimitiveComponent * OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult)
+{
+	if (OtherActor->IsA(AInteractableActor::StaticClass())) {
+		InteractableArray.Remove((AInteractableActor*) OtherActor);
+	}
 }

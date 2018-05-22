@@ -3,6 +3,7 @@
 #include "FPSProjectile.h"
 #include "FPSZombie.h"
 #include "Components/SphereComponent.h"
+#include "Components/DecalComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "GameFramework/ProjectileMovementComponent.h"
 
@@ -122,7 +123,8 @@ void AFPSProjectile::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor*
 			}
 
 			if (BulletHoleFlesh) {
-				UGameplayStatics::SpawnDecalAttached(BulletHoleFlesh, FVector(10, 10, 10), OtherComp, NAME_None, SweepResult.ImpactPoint, SweepResult.ImpactNormal.Rotation() , EAttachLocation::KeepWorldPosition, 5.0);
+				UDecalComponent* NewDecal = UGameplayStatics::SpawnDecalAttached(BulletHoleFlesh, FVector(10, 10, 10), OtherComp, NAME_None, SweepResult.ImpactPoint, SweepResult.ImpactNormal.Rotation() , EAttachLocation::KeepWorldPosition, 5.0);
+				NewDecal->AttachToComponent(SweepResult.GetComponent(), FAttachmentTransformRules::KeepWorldTransform);
 			}
 
 			bool headhit = false;

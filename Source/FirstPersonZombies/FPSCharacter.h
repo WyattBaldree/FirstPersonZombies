@@ -6,6 +6,7 @@
 #include "GameFramework/Character.h"
 #include "Weapon.h"
 #include "ZombieSpawner.h"
+#include "InteractableActor.h"
 #include "FPSCharacter.generated.h"
 
 
@@ -33,6 +34,10 @@ protected:
 	/** Sound to play each time we fire */
 	UPROPERTY(EditAnywhere, Category = "Gameplay")
 	TSubclassOf<class AWeapon> StartingWeapon;
+
+	// Sphere collision component
+	UPROPERTY(VisibleDefaultsOnly, Category = "Projectile")
+		UCapsuleComponent* InteractCapsuleComponent;
 
 public:	
 	// Called every frame
@@ -118,4 +123,19 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Gameplay")
 	AZombieSpawner* DebugZombieSpawner;
+
+	////////////////////////////// Interactable
+	UPROPERTY(BlueprintReadOnly, Category = "Gameplay")
+	TArray<AInteractableActor*> InteractableArray;
+
+	// sweg
+	UFUNCTION()
+	void OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+
+	// sweg
+	UFUNCTION()
+	void OnOverlapEnd(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+
+	UPROPERTY(VisibleDefaultsOnly, Category = "Projectile")
+		UCapsuleComponent* InteractCapsule;
 };
