@@ -6,6 +6,7 @@
 #include "GameFramework/Character.h"
 #include "Weapon.h"
 #include "ZombieSpawner.h"
+#include "Components/CapsuleComponent.h"
 #include "InteractableActor.h"
 #include "FPSCharacter.generated.h"
 
@@ -19,13 +20,17 @@ class FIRSTPERSONZOMBIES_API AFPSCharacter : public ACharacter
 {
 	GENERATED_BODY()
 
+private:
+	
+
 public:
 	// Sets default values for this character's properties
 	AFPSCharacter();
-
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
+
+	AInteractableActor* GetClosestInteractable();
 
 	/** First person camera */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera")
@@ -35,9 +40,9 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Gameplay")
 	TSubclassOf<class AWeapon> StartingWeapon;
 
-	// Sphere collision component
-	UPROPERTY(VisibleDefaultsOnly, Category = "Projectile")
-		UCapsuleComponent* InteractCapsuleComponent;
+	// capsule collision component
+	UPROPERTY(VisibleDefaultsOnly, Category = "Gameplay")
+		class UCapsuleComponent* InteractCapsuleComponent;
 
 public:	
 	// Called every frame
@@ -45,6 +50,15 @@ public:
 
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+
+	////////////////////////////////////////////My Hud
+	// Reference UMG Asset in the Editor
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Gameplay")
+	TSubclassOf<class UUserWidget> wMyHud;
+
+	// Variable to hold the widget After Creating it.
+	UPROPERTY(BlueprintReadOnly, Category = "Gameplay")
+	UUserWidget* MyHud;
 
 	//Handles input for moving forward and backward.
 	UFUNCTION()
@@ -63,7 +77,19 @@ public:
 	void StopJump();
 
 	UFUNCTION()
-	void Fire();
+	void FirePressed();
+
+	UFUNCTION()
+	void FireReleased();
+
+	UFUNCTION()
+	void InteractPressed();
+
+	UFUNCTION()
+	void InteractReleased();
+
+	UPROPERTY(BlueprintReadOnly)
+	bool Interacting = false;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Gameplay")
 	bool Firing = false;
@@ -130,12 +156,24 @@ public:
 
 	// sweg
 	UFUNCTION()
-	void OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+	void OnOverlapBegin(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 
 	// sweg
 	UFUNCTION()
-	void OnOverlapEnd(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+	void OnOverlapEnd(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
+
+	UFUNCTION(BlueprintImplementableEvent)
+	void InteractBlueprint();
+
+	UFUNCTION(BlueprintImplementableEvent)
+	void InteractChanged();
+
+	UFUNCTION(BlueprintCallable)
+	AInteractableActor* GetInteracting();
 
 	UPROPERTY(VisibleDefaultsOnly, Category = "Projectile")
 		UCapsuleComponent* InteractCapsule;
+
+
+	AInteractableActor* CurrentInteractableActor = nullptr;
 };

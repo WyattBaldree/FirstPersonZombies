@@ -14,6 +14,7 @@
 #include "FPSProjectile.h"
 #include "Kismet/GameplayStatics.h"
 #include "Animation/AnimInstance.h"
+#include "Blueprint/UserWidget.h"
 #include "GameFramework/PlayerController.h"
 #include "FirstPersonZombiesGameMode.h"
 #include "ZombieManager.h"
@@ -22,6 +23,7 @@
 // Sets default values
 AFPSCharacter::AFPSCharacter()
 {
+
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
@@ -39,11 +41,14 @@ AFPSCharacter::AFPSCharacter()
 	Capsule->SetCollisionProfileName(TEXT("FPSPawn"));
 	//Capsule->OnComponentBeginOverlap.AddDynamic(this, &AFPSCharacter::OnOverlapBegin);
 
-	InteractCapsuleComponent = CreateDefaultSubobject<UCapsuleComponent>(TEXT("SphereComponent"));
-	InteractCapsuleComponent->BodyInstance.SetCollisionProfileName(TEXT("FPSPlayerTrigger"));
-	InteractCapsuleComponent->OnComponentBeginOverlap.AddDynamic(this, &AFPSCharacter::OnOverlapBegin);
+	InteractCapsuleComponent = CreateDefaultSubobject<UCapsuleComponent>(TEXT("Trigger Capsule"));
+	InteractCapsuleComponent->InitCapsuleSize(55.f, 96.0f);;
+	InteractCapsuleComponent->SetCollisionProfileName(TEXT("FPSPlayerTrigger"));
+	InteractCapsuleComponent->SetupAttachment(RootComponent);
 
-	//Capsule->OnComponentEndOverlap.AddDynamic(this, &AFPSCharacter::OnOverlapEnd);
+	// declare overlap events
+	InteractCapsuleComponent->OnComponentBeginOverlap.AddDynamic(this, &AFPSCharacter::OnOverlapBegin);
+	InteractCapsuleComponent->OnComponentEndOverlap.AddDynamic(this, &AFPSCharacter::OnOverlapEnd);
 
 	UE_LOG(LogTemp, Warning, TEXT("Num overlapping interactors: %i"), InteractableArray.Num());
 	
@@ -76,6 +81,39 @@ void AFPSCharacter::BeginPlay()
 		SpawnParams.Instigator = Instigator;
 		AWeapon* weapon = World->SpawnActor<AWeapon>(StartingWeapon, FVector(0, 0, 0), FRotator(1, 1, 1), SpawnParams);
 		EquipSideArm(weapon);
+	}
+
+	if (wMyHud) // Check if the Asset is assigned in the blueprint.
+	{
+		// Create the widget and store it.
+		APlayerController* MyPlayerController = UGameplayStatics::GetPlayerController(this, 0);
+		MyHud = CreateWidget<UUserWidget>(MyPlayerController, wMyHud);
+
+		// now you can use the widget directly since you have a referance for it.
+		// Extra check to  make sure the pointer holds the widget.
+		if (MyHud)
+		{
+			//let add it to the view port
+			MyHud->AddToViewport();
+		}
+	}
+}
+
+// Called every frame
+void AFPSCharacter::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
+	AInteractableActor* NewInteractableActor = GetClosestInteractable();
+	if (CurrentInteractableActor != NewInteractableActor) {
+		if (Interacting == true) {
+			CurrentInteractableActor->InteractEnd();
+			Interacting = false;
+		}
+		CurrentInteractableActor = NewInteractableActor;
+		if (CurrentInteractableActor) {
+			UE_LOG(LogTemp, Warning, TEXT("Nearest overlapped interacters: %s"), *(CurrentInteractableActor->GetName()));
+		}
+		InteractChanged();
 	}
 }
 
@@ -176,12 +214,6 @@ void AFPSCharacter::EquipSideArm(AWeapon * weapon)
 
 
 
-// Called every frame
-void AFPSCharacter::Tick(float DeltaTime)
-{
-	Super::Tick(DeltaTime);
-
-}
 
 // Called to bind functionality to input
 void AFPSCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -198,7 +230,8 @@ void AFPSCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompon
 	PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &AFPSCharacter::StartJump);
 	PlayerInputComponent->BindAction("Jump", IE_Released, this, &AFPSCharacter::StopJump);
 
-	PlayerInputComponent->BindAction("Fire", IE_Pressed, this, &AFPSCharacter::Fire);
+	PlayerInputComponent->BindAction("Fire", IE_Pressed, this, &AFPSCharacter::FirePressed);
+	PlayerInputComponent->BindAction("Fire", IE_Released, this, &AFPSCharacter::FireReleased);
 	PlayerInputComponent->BindAction("Reload", IE_Pressed, this, &AFPSCharacter::Reload);
 
 	PlayerInputComponent->BindAction("DebugWyatt", IE_Pressed, this, &AFPSCharacter::DebugWyatt);
@@ -206,6 +239,9 @@ void AFPSCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompon
 	PlayerInputComponent->BindAction("Weapon1", IE_Pressed, this, &AFPSCharacter::SwitchWeapon1);
 	PlayerInputComponent->BindAction("Weapon2", IE_Pressed, this, &AFPSCharacter::SwitchWeapon2);
 	PlayerInputComponent->BindAction("SideArm", IE_Pressed, this, &AFPSCharacter::SwitchSideArm);
+
+	PlayerInputComponent->BindAction("Interact", IE_Pressed, this, &AFPSCharacter::InteractPressed);
+	PlayerInputComponent->BindAction("Interact", IE_Released, this, &AFPSCharacter::InteractReleased);
 }
 
 void AFPSCharacter::MoveForward(float Value)
@@ -229,11 +265,32 @@ void AFPSCharacter::StopJump() {
 	bPressedJump = false;
 }
 
-void AFPSCharacter::Fire()
+void AFPSCharacter::FirePressed()
 {
-	if (HeldWeapon) {
-		HeldWeapon->Fire(TriggerPulled);
+	Firing = true;
+	TriggerPulled = true;
+}
+
+void AFPSCharacter::FireReleased()
+{
+	Firing = false;
+}
+
+void AFPSCharacter::InteractPressed()
+{
+	if (CurrentInteractableActor) {
+		CurrentInteractableActor->InteractBegin();
+		Interacting = true;
 	}
+	InteractBlueprint();
+}
+
+void AFPSCharacter::InteractReleased()
+{
+	if (CurrentInteractableActor && Interacting == true) {
+		CurrentInteractableActor->InteractEnd();
+	}
+	Interacting = false;
 }
 
 void AFPSCharacter::Reload()
@@ -248,19 +305,51 @@ void AFPSCharacter::DebugWyatt()
 
 }
 
-void AFPSCharacter::OnOverlapBegin(UPrimitiveComponent * OverlappedComp, AActor * OtherActor, UPrimitiveComponent * OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult)
+void AFPSCharacter::OnOverlapBegin(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	if (OtherActor->IsA(AInteractableActor::StaticClass())) {
-		InteractableArray.Add((AInteractableActor*)OtherActor);
+	if (OtherActor && (OtherActor != this) && OtherComp) {
+		if (OtherActor->IsA(AInteractableActor::StaticClass())) {
+			InteractableArray.Add((AInteractableActor*)OtherActor);
+			UE_LOG(LogTemp, Warning, TEXT("Num overlapped interacters: %d"), InteractableArray.Num());
+		}
 	}
-	//UE_LOG(LogTemp, Warning, TEXT("Num overlapping interactors: %i"), InteractableArray.Num());
-	UE_LOG(LogTemp, Warning, TEXT("Num overl"));
-
 }
 
-void AFPSCharacter::OnOverlapEnd(UPrimitiveComponent * OverlappedComp, AActor * OtherActor, UPrimitiveComponent * OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult)
+void AFPSCharacter::OnOverlapEnd(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
-	if (OtherActor->IsA(AInteractableActor::StaticClass())) {
-		InteractableArray.Remove((AInteractableActor*) OtherActor);
+	if (OtherActor && (OtherActor != this) && OtherComp) {
+		if (OtherActor->IsA(AInteractableActor::StaticClass())) {
+			InteractableArray.Remove((AInteractableActor*)OtherActor);
+			UE_LOG(LogTemp, Warning, TEXT("Num overlapped interacters: %d"), InteractableArray.Num());
+		}
 	}
+}
+
+AInteractableActor* AFPSCharacter::GetInteracting()
+{
+	return CurrentInteractableActor;
+}
+
+AInteractableActor * AFPSCharacter::GetClosestInteractable()
+{	
+	int Len = InteractableArray.Num();
+	if (Len <= 0) {
+		return nullptr;
+	}
+	
+	if (Len == 1) {
+		return InteractableArray[0];
+	}
+
+	AInteractableActor* NearestInteractable = InteractableArray[0];
+	float CurrentDistance = GetDistanceTo(NearestInteractable);
+	for (int i = 1; i < Len; i++) {
+		float NewDistance = GetDistanceTo(InteractableArray[i]);
+		if (NewDistance < CurrentDistance) {
+			NearestInteractable = InteractableArray[i];
+			CurrentDistance = NewDistance;
+		}
+	}
+
+	return NearestInteractable;
 }
