@@ -5,16 +5,20 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "Animation/AnimSequence.h"
+#include "Window.h"
 #include "FPSZombie.generated.h"
 
 UENUM(BlueprintType)		//"BlueprintType" is essential to include
 enum class ZombieStateEnum : uint8
 {
 	VE_Spawning 	UMETA(DisplayName = "Spawning"),
+	VE_ToWindow		UMETA(DisplayName = "ToWindow"),
+	VE_AttackWindow		UMETA(DisplayName = "AttackWindow"),
+	VE_ClimbThroughWindow		UMETA(DisplayName = "ClimbThroughWindow"),
 	VE_Walking 	UMETA(DisplayName = "Walking"),
 	VE_Running 	UMETA(DisplayName = "Running"),
-	VE_Crawling		UMETA(DisplayName = "Crawling"),
-	VE_Dead		UMETA(DisplayName = "Dead")
+	VE_Dead		UMETA(DisplayName = "Dead"),
+	VE_Crawling		UMETA(DisplayName = "Crawling")
 };
 
 class AZombieManager;
@@ -80,11 +84,16 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Gameplay")
 	ZombieStateEnum ZombieStateTarget = ZombieState;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Gameplay")
+	AWindow* TargetWindow;
+
 	UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category = "Zombie")
 	bool Hurt(float Damage, bool Headshot);
+	bool Hurt_Implementation(float Damage, bool Headshot);
 
 	UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category = "Zombie")
 	bool Die();
+	bool Die_Implementation();
 
 	/** AnimMontage to play when we spawn */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Gameplay")
@@ -122,11 +131,21 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Gameplay")
 	UAnimSequence* AttackAnimation;
 
+	/** AnimMontage to play when we crawl */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Gameplay")
+	UAnimSequence* ClimbOverAnimation;
+
 	UPROPERTY(EditDefaultsOnly, Category = "Gameplay")
 	float SpawnAnimationTime;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Gameplay")
 	float FallAnimationTime;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Gameplay")
+	float AttackAnimationTime;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Gameplay")
+	float ClimbOverAnimationTime;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Gameplay")
 	float DeathTimer = 5;
@@ -135,9 +154,23 @@ public:
 
 	UPROPERTY(BlueprintReadWrite, Category = "Gameplay")
 	bool Attacking = false;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Gameplay")
+	float WindowHitDelay = 1.0;
+
+	void ClimbOver(float DeltaTime);
+
+	void AttackWindow(float DeltaTime);
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "_Window")
+	class USceneComponent* Root;
 	
+	ZombieStateEnum MovementStatePreference = ZombieStateEnum::VE_Walking;
 private:
 	AZombieManager* ZombieManagerReference;
 
+	bool hasAttacked = false;
+
+	FVector ZombieFeet;
 
 };

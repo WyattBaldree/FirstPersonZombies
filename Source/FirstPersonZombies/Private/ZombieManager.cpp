@@ -175,14 +175,16 @@ bool AZombieManager::SpawnZombie(AZombieSpawner* Spawner)
 				//NewZombie->AddActorLocalOffset(FVector(0.0, 0.0, CapsuleHalfHeight));
 
 				NewZombie->TargetActor = Spawner->InitialTargetActor;
+				NewZombie->TargetWindow = Spawner->InitialTargetWindow;
+				NewZombie->ZombieStateTarget = Spawner->InitialState;
 				NewZombie->MaxHP = GetZombieHealth(Wave);
 				NewZombie->HP = NewZombie->MaxHP;
 				NewZombie->TargetActor = UGameplayStatics::GetPlayerCharacter(GetWorld(), 0);
 				if (FMath::RandRange(0.0f, 1.0f) > GetWalkerChance(Wave)) {
-					NewZombie->ZombieStateTarget = ZombieStateEnum::VE_Running;
+					NewZombie->MovementStatePreference = ZombieStateEnum::VE_Running;
 				}
 				else {
-					NewZombie->ZombieStateTarget = ZombieStateEnum::VE_Walking;
+					NewZombie->MovementStatePreference = ZombieStateEnum::VE_Walking;
 				}
 
 				return true;

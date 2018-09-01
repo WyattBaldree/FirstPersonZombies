@@ -78,7 +78,7 @@ void ALineTraceActor::NotifyEvent()
 			if (HitActor->IsA(AInteractableActor::StaticClass())) {
 
 				AInteractableActor* dfsdj = (AInteractableActor*)HitActor;
-				dfsdj->Interact();
+				//dfsdj->Interact();
 			}
 		}
 		/*if (Hit.GetActor()->Implements<UInteractable>())

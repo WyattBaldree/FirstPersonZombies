@@ -8,6 +8,7 @@
 
 #include "FirstPersonZombies.h"
 #include "FPSCharacter.h"
+#include "Weapon.h"
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
@@ -32,9 +33,11 @@ AFPSCharacter::AFPSCharacter()
 	// Attach the camera component to our capsule component.
 	FPSCameraComponent->SetupAttachment(GetCapsuleComponent());
 	// Set the offset to be approximately in the characters eyes
-	FPSCameraComponent->SetRelativeLocation(FVector(0, 0, 20 + BaseEyeHeight));
+	FPSCameraComponent->SetRelativeLocation(FVector(0, 0, BaseEyeHeight));
+	//FPSCameraComponent->SetRelativeLocation(FVector(0, 0, 20 + BaseEyeHeight));
 	// Allow the controller to rotate our camera
 	FPSCameraComponent->bUsePawnControlRotation = true;
+	FPSCameraComponent->FieldOfView = PlayerFieldOfView;
 
 	// The collision profile of the object
 	UCapsuleComponent* Capsule = GetCapsuleComponent();
@@ -73,6 +76,11 @@ void AFPSCharacter::BeginPlay()
 		//GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Red, TEXT("We are using FPSCharacter."));
 	}
 
+	FPSCameraComponent->SetRelativeLocation(FVector(0, 0, BaseEyeHeight));
+	//FPSCameraComponent->SetRelativeLocation(FVector(0, 0, 20 + BaseEyeHeight));
+
+	ScopeOpacityUpdateEvent(0);
+
 	if (StartingWeapon) {
 		UWorld* World = GetWorld();
 
@@ -103,10 +111,56 @@ void AFPSCharacter::BeginPlay()
 void AFPSCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+	
+	if (HeldWeapon) {
+		// If we are currently aiming, increase AimDownSightsAmount until it reaches 1
+		// Else reduce it until it reaches 0
+		if (AimingDownSights) {
+			if (AimDownSightsAmount < 1) {
+				AimDownSightsAmount += HeldWeapon->AimSpeed;
+			}
+			else {
+				AimDownSightsAmount = 1.0;
+			}
+		}
+		else {
+			if (AimDownSightsAmount > 0) {
+				AimDownSightsAmount -= HeldWeapon->AimSpeed;
+			}
+			else {
+				AimDownSightsAmount = 0.0;
+			}
+		}
+
+		FVector CameraLocation;
+		FRotator CameraRotation;
+		GetActorEyesViewPoint(CameraLocation, CameraRotation);
+
+		HeldWeapon->SetActorLocation(CameraLocation + FTransform(CameraRotation).TransformVector(HeldWeapon->GunOffset + ((HeldWeapon->GunOffset_Sights - HeldWeapon->GunOffset)*AimDownSightsAmount)));
+
+		// If our aim amount has changed, we need to move our gun and update our fov
+		
+		if (AimDownSightsAmount_Current != AimDownSightsAmount) {
+			AimDownSightsAmount_Current = AimDownSightsAmount;
+
+			FPSCameraComponent->FieldOfView = PlayerFieldOfView - AimDownSightsAmount * HeldWeapon->ZoomAmount;
+
+			if (HeldWeapon->HasScope) {
+				ScopeOpacityUpdateEvent(AimDownSightsAmount_Current);
+			}
+			else {
+				// Required?
+				ScopeOpacityUpdateEvent(0);
+			}
+
+			ReticleOpacityUpdateEvent(1.0 - AimDownSightsAmount);
+		}
+	}
+
 	AInteractableActor* NewInteractableActor = GetClosestInteractable();
 	if (CurrentInteractableActor != NewInteractableActor) {
 		if (Interacting == true) {
-			CurrentInteractableActor->InteractEnd();
+			CurrentInteractableActor->InteractEnd(this);
 			Interacting = false;
 		}
 		CurrentInteractableActor = NewInteractableActor;
@@ -115,6 +169,9 @@ void AFPSCharacter::Tick(float DeltaTime)
 		}
 		InteractChanged();
 	}
+
+
+
 }
 
 // When this function is called, the player switches their currently held weapon to the weapon 
@@ -127,6 +184,9 @@ void AFPSCharacter::SwitchWeapon(int WeaponIndex)
 		HeldWeapon->SetActorHiddenInGame(false);
 		CurrentWeapon = WeaponIndex;
 		HoldingSideArm = false;
+		ScopeTextureUpdateEvent();
+		ScopeOpacityUpdateEvent(0);
+		AimDownSightsAmount = 0;
 	}
 }
 
@@ -140,6 +200,9 @@ void AFPSCharacter::SwitchSideArm()
 		HeldWeapon->SetActorHiddenInGame(false);
 		//CurrentWeapon = 2;
 		HoldingSideArm = true;
+		ScopeTextureUpdateEvent();
+		ScopeOpacityUpdateEvent(0);
+		AimDownSightsAmount = 0;
 	}
 }
 
@@ -153,6 +216,24 @@ void AFPSCharacter::SwitchWeapon2()
 	SwitchWeapon(1);
 }
 
+bool AFPSCharacter::DoTransaction(int Price)
+{
+	if (Cash < Price) return false;
+	SetCash(Cash - Price);
+	return true;
+}
+
+void AFPSCharacter::SetCash(int amount)
+{
+	CashUpdateEvent(amount);
+	Cash = amount;
+}
+
+int AFPSCharacter::GetCash()
+{
+	return Cash;
+}
+
 // This function is strictly for adding a new weapon to the player's inventory. 
 // If a weapon is already in the WeaponIndex passed, the weapon is destroyed.
 void AFPSCharacter::EquipWeapon(AWeapon* weapon, int WeaponIndex)
@@ -161,11 +242,11 @@ void AFPSCharacter::EquipWeapon(AWeapon* weapon, int WeaponIndex)
 	if (weapon) {
 		if(Weapons[WeaponIndex]) Weapons[WeaponIndex]->Destroy();
 		
-		//HeldWeapon->bHidden = true;
+		
 		if (HeldWeapon) HeldWeapon->SetActorHiddenInGame(true);
 		HeldWeapon = weapon;
 		Weapons[WeaponIndex] = weapon;
-		//HeldWeapon->bHidden = false;
+		
 		HeldWeapon->SetActorHiddenInGame(false);
 		CurrentWeapon = WeaponIndex;
 		HoldingSideArm = false;
@@ -179,6 +260,10 @@ void AFPSCharacter::EquipWeapon(AWeapon* weapon, int WeaponIndex)
 
 		HeldWeapon->AttachToComponent(FPSCameraComponent, FAttachmentTransformRules::KeepWorldTransform);
 		HeldWeapon->SetOwner(this);
+
+		ScopeTextureUpdateEvent();
+		ScopeOpacityUpdateEvent(0);
+		AimDownSightsAmount = 0;
 	}
 }
 
@@ -209,8 +294,14 @@ void AFPSCharacter::EquipSideArm(AWeapon * weapon)
 
 		HeldWeapon->AttachToComponent(FPSCameraComponent, FAttachmentTransformRules::KeepWorldTransform);
 		HeldWeapon->SetOwner(this);
+
+		ScopeTextureUpdateEvent();
+		ScopeOpacityUpdateEvent(0);
+		AimDownSightsAmount = 0;
 	}
 }
+
+
 
 
 
@@ -242,6 +333,35 @@ void AFPSCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompon
 
 	PlayerInputComponent->BindAction("Interact", IE_Pressed, this, &AFPSCharacter::InteractPressed);
 	PlayerInputComponent->BindAction("Interact", IE_Released, this, &AFPSCharacter::InteractReleased);
+
+	PlayerInputComponent->BindAction("Aim", IE_Pressed, this, &AFPSCharacter::AimPressed);
+	PlayerInputComponent->BindAction("Aim", IE_Released, this, &AFPSCharacter::AimReleased);
+}
+
+void AFPSCharacter::CashUpdateEvent_Implementation(int NewValue)
+{
+	//This is what happens if we don't create a bluleprint event and CashUpdateEvent is called.
+	UE_LOG(LogTemp, Warning, TEXT("Cash is %d. (Called from CashUpdateEvent_Implementation)"), NewValue);
+}
+
+void AFPSCharacter::ScopeTextureUpdateEvent_Implementation()
+{
+	UE_LOG(LogTemp, Warning, TEXT("The scope texture update event is not being used in the blueprint. (Called from ScopeTextureUpdateEvent_Implementation)"));
+}
+
+void AFPSCharacter::ScopeOpacityUpdateEvent_Implementation(float NewOpacity)
+{
+	UE_LOG(LogTemp, Warning, TEXT("The scope opacity update event is not being used in the blueprint. (Called from ScopeOpacityUpdateEvent_Implementation)"));
+}
+
+void AFPSCharacter::BloomUpdateEvent_Implementation(float NewBloom, AWeapon* Weapon)
+{
+	UE_LOG(LogTemp, Warning, TEXT("The bloom amount is now %f. (Called from BloomUpdateEvent_Implementation)"), NewBloom);
+}
+
+void AFPSCharacter::ReticleOpacityUpdateEvent_Implementation(float NewOpacity)
+{
+	UE_LOG(LogTemp, Warning, TEXT("The reticle opacity is now %f. (Called from ReticleOpacityUpdateEvent_Implementation)"), NewOpacity);
 }
 
 void AFPSCharacter::MoveForward(float Value)
@@ -267,19 +387,22 @@ void AFPSCharacter::StopJump() {
 
 void AFPSCharacter::FirePressed()
 {
-	Firing = true;
-	TriggerPulled = true;
+	if (HeldWeapon) {
+		HeldWeapon->TriggerPressed();
+	}
 }
 
 void AFPSCharacter::FireReleased()
 {
-	Firing = false;
+	if (HeldWeapon) {
+		HeldWeapon->TriggerReleased();
+	}
 }
 
 void AFPSCharacter::InteractPressed()
 {
 	if (CurrentInteractableActor) {
-		CurrentInteractableActor->InteractBegin();
+		CurrentInteractableActor->InteractBegin(this);
 		Interacting = true;
 	}
 	InteractBlueprint();
@@ -288,9 +411,19 @@ void AFPSCharacter::InteractPressed()
 void AFPSCharacter::InteractReleased()
 {
 	if (CurrentInteractableActor && Interacting == true) {
-		CurrentInteractableActor->InteractEnd();
+		CurrentInteractableActor->InteractEnd(this);
 	}
 	Interacting = false;
+}
+
+void AFPSCharacter::AimPressed()
+{
+	AimingDownSights = true;
+}
+
+void AFPSCharacter::AimReleased()
+{
+	AimingDownSights = false;
 }
 
 void AFPSCharacter::Reload()

@@ -42,13 +42,13 @@ FString AInteractableActor::GetInteractString()
 /////////////////////// Interact
 
 //This is what happens on the Event if we have not created an event in the child blueprint or class 
-void AInteractableActor::Interact_Implementation()
+void AInteractableActor::Interact_Implementation(AActor* InteractingActor)
 {
 	UE_LOG(LogTemp, Warning, TEXT("Default event function."))
-		InteractInternal();
+	InteractInternal(InteractingActor);
 }
 
-void AInteractableActor::InteractInternal()
+void AInteractableActor::InteractInternal(AActor* InteractingActor)
 {
 	UE_LOG(LogTemp, Warning, TEXT("Default internal interact function."))
 }
@@ -56,46 +56,46 @@ void AInteractableActor::InteractInternal()
 
 ///////////////////////////// InteractOverlap
 
-void AInteractableActor::InteractOverlapInternal()
+void AInteractableActor::InteractOverlapInternal(AActor* InteractingActor)
 {
 	UE_LOG(LogTemp, Warning, TEXT("Default overlap interact function."))
 }
 
-void AInteractableActor::InteractOverlap_Implementation()
+void AInteractableActor::InteractOverlap_Implementation(AActor* InteractingActor)
 {
 	UE_LOG(LogTemp, Warning, TEXT("Default overlap event funtion."))
-	InteractOverlapInternal();
+	InteractOverlapInternal(InteractingActor);
 }
 
 //////////////////////////// InteractBegin
 
-void AInteractableActor::InteractBeginInternal()
+void AInteractableActor::InteractBeginInternal(AActor* InteractingActor)
 {
 	UE_LOG(LogTemp, Warning, TEXT("Default begin interact function."));
 }
 
-void AInteractableActor::InteractBegin_Implementation()
+void AInteractableActor::InteractBegin_Implementation(AActor* InteractingActor)
 {
 	UE_LOG(LogTemp, Warning, TEXT("Default begin event funtion."));
-	InteractBeginInternal();
+	InteractBeginInternal(InteractingActor);
 }
 
 //////////////////////////// InteractEnd
 
-void AInteractableActor::InteractEndInternal()
+void AInteractableActor::InteractEndInternal(AActor* InteractingActor)
 {
 	UE_LOG(LogTemp, Warning, TEXT("Default end interact function."));
 }
 
-void AInteractableActor::InteractEnd_Implementation()
+void AInteractableActor::InteractEnd_Implementation(AActor* InteractingActor)
 {
 	UE_LOG(LogTemp, Warning, TEXT("Default end event funtion."));
-	InteractEndInternal();
+	InteractEndInternal(InteractingActor);
 }
 
 
 
 void AInteractableActor::OnOverlapBegin(UPrimitiveComponent * OverlappedComp, AActor * OtherActor, UPrimitiveComponent * OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult)
 {
-	this->InteractOverlap();
+	this->InteractOverlap(OtherActor);
 }

@@ -32,22 +32,22 @@ public:
 	// Interact_Implementation cannot bee overridden so in order to have different functionality, you must instead override InteractionInternal which is called by Interact_Implementation.
 	// If this event has been used in a blueprint, the actor will completely ignore the Interact_Implementation code and use the blueprint functionality instead.
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "A_Interactable")
-		void Interact();
-		void Interact_Implementation(); // This must be declared in order for the Interact_Implementation to work properly 
+		void Interact(const AActor* InteractingActor);
+		void Interact_Implementation(AActor* InteractingActor); // This must be declared in order for the Interact_Implementation to work properly 
 	
 	// This event will trigger when the interactable object overlaps with an actor
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "A_Interactable")
-		void InteractOverlap();
-		void InteractOverlap_Implementation();
+		void InteractOverlap(const AActor* InteractingActor);
+		void InteractOverlap_Implementation(AActor* InteractingActor);
 
 	// This event will trigger when the interactable object begins overlaping an actor
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "A_Interactable")
-		void InteractBegin();
-		void InteractBegin_Implementation();
+		void InteractBegin(const AActor* InteractingActor);
+		void InteractBegin_Implementation(AActor* InteractingActor);
 
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "A_Interactable")
-		void InteractEnd();
-		void InteractEnd_Implementation();
+		void InteractEnd(const AActor* InteractingActor);
+		void InteractEnd_Implementation(AActor* InteractingActor);
 
 	// This is the text that the user will see when the interactable actor is available for interaction.
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "A_Interactable")
@@ -74,13 +74,13 @@ protected:
 	virtual void BeginPlay() override;
 
 	// This function allows us to give child classes different functionality when the Interact_Implementation is called since Interact_Implementation cannot be virtual.
-	virtual void InteractInternal();
+	virtual void InteractInternal(AActor* InteractingActor);
 
-	virtual void InteractOverlapInternal();
+	virtual void InteractOverlapInternal(AActor* InteractingActor);
 
-	virtual void InteractBeginInternal();
+	virtual void InteractBeginInternal(AActor* InteractingActor);
 
-	virtual void InteractEndInternal();
+	virtual void InteractEndInternal(AActor* InteractingActor);
 
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "A_Interactable")

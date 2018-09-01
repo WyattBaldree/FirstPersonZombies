@@ -16,7 +16,7 @@ class FIRSTPERSONZOMBIES_API AInteractableActorChild : public AInteractableActor
 	
 protected:
 	// In order to extend the event functionality we only need to override the InteractIntertnal function, not the Interact_Implementation function.
-	virtual void InteractInternal() override;
+	virtual void InteractInternal(AActor* InteractActor) override;
 	
 	
 };

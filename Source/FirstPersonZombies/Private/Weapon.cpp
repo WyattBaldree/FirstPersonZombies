@@ -3,6 +3,7 @@
 #include "Weapon.h"
 #include "Animation/AnimSequence.h"
 #include "DrawDebugHelpers.h"
+#include "FPSCharacter.h"
 #include "Kismet/GameplayStatics.h"
 
 // Sets default values
@@ -22,6 +23,11 @@ AWeapon::AWeapon()
 	GunMesh->CastShadow = false;
 }
 
+void AWeapon::FireEnd()
+{
+	Firing = false;
+}
+
 // Called when the game starts or when spawned
 void AWeapon::BeginPlay()
 {
@@ -31,8 +37,9 @@ void AWeapon::BeginPlay()
 
 }
 
-void AWeapon::Fire(bool TriggerPulled)
+void AWeapon::Fire()
 {
+
 	// If we are semi automatic and the trigger wasn't just pulled, don't shoot.
 	if (!Automatic && !TriggerPulled) return;
 
@@ -42,16 +49,22 @@ void AWeapon::Fire(bool TriggerPulled)
 	// Get the animation object for the arms mesh
 	UAnimInstance* AnimInstance = GunMesh->GetAnimInstance();
 
-	if (Reloading) return;
-
-	if (!Reloading && MagazineCurrent <= 0 && (AmmoCurrent > 0 || IsSideArm)) {
+	if (MagazineCurrent > 0) {
+		Reloading = false;
+	}
+	else if (Reloading) {
+		return;
+	}
+	else if (AmmoCurrent > 0 || IsSideArm) {
 		Reload();
 		return;
 	}
+
+
 	
 	if(MagazineCurrent <= 0) return;
 
-	AnimInstance->StopSlotAnimation(0, "Arms");
+	//AnimInstance->StopSlotAnimation(0, "Arms");
 
 	if (CameraShake) {
 		UGameplayStatics::PlayWorldCameraShake(this, CameraShake, GetActorLocation(), 0.0f, 5000.0f);
@@ -62,9 +75,13 @@ void AWeapon::Fire(bool TriggerPulled)
 	{
 		if (AnimInstance)
 		{
-			AnimInstance->PlaySlotAnimationAsDynamicMontage(FireAnimation, "Arms", 0.0f);
+			//AnimInstance->PlaySlotAnimationAsDynamicMontage(FireAnimation, "Arms", 0.0f);
 		}
 	}
+
+	//Firing = true;
+	/* Activate the fuze to explode the bomb after several seconds */
+	//GetWorld()->GetTimerManager().SetTimer(FireEndTimerHandle, this, &AWeapon::FireEnd, MinimumFireTime, false);
 
 	// try and play the sound if specified
 	if (FireSound)
@@ -143,15 +160,46 @@ void AWeapon::Fire(bool TriggerPulled)
 	// If we fire, expend a single bullet, reset our fire interval, and increase bloom.
 	MagazineCurrent--;
 	ShootIntervalCurrent = ShootInterval;
-	BloomCurrent += Bloom;
+	if (MyFPSCharacter == NULL) {
+		MyFPSCharacter = (AFPSCharacter*)UGameplayStatics::GetPlayerCharacter(GetWorld(), 0);
+	}
+	BloomCurrent += Bloom * (1-(MyFPSCharacter->AimDownSightsAmount*AimDownSightSteadyScale));
 	if(BloomCurrent > 1.0)
 		BloomCurrent = 1.0;
 }
 
+void AWeapon::ReloadIndividual(float Time) {
+
+	if (MagazineCurrent >= MagazineMax || (!IsSideArm && AmmoCurrent <= 0)) {
+		Reloading = false;
+	}
+	else {
+		ReloadTime_Current = Time;
+		Reloading = true;
+	}
+
+}
+
 void AWeapon::Reload()
 {
-	if(MagazineCurrent == MagazineMax || (!IsSideArm && AmmoCurrent <= 0) || Reloading) return;
-	
+	if (IsIndividuallyLoaded) {
+		ReloadIndividual(ReloadTime + (IndividualReloadStartAnimation->GetPlayLength() / IndividualReloadStartAnimation->RateScale));
+	}
+	else {
+		ReloadMagazine();
+	}
+}
+
+void AWeapon::ReloadMagazine() {
+	if (MagazineCurrent >= MagazineMax || (!IsSideArm && AmmoCurrent <= 0) || Reloading) return;
+
+	if (IsPumpAction) {
+		if (Pumping) {
+			Pumping = false;
+			Pumped = false;
+		}
+	}
+
 	// try to play the reload sound effect
 	if (ReloadSound)
 	{
@@ -166,12 +214,36 @@ void AWeapon::Reload()
 
 		if (AnimInstance)
 		{
-			AnimInstance->PlaySlotAnimationAsDynamicMontage(ReloadAnimation, "Arms", 0.0f);
+			//AnimInstance->PlaySlotAnimationAsDynamicMontage(ReloadAnimation, "Arms", 0.0f);
 		}
 	}
 
 	Reloading = true;
-	ReloadTimeCurrent = ReloadTime;
+	ReloadTime_Current = ReloadTime;
+}
+
+void AWeapon::Pump() {
+	if (!IsPumpAction) return;
+	if (Pumping) return;
+
+	/*if (Reloading) {
+	// Will need to implement this if manual pumping is implemented
+	}*/
+
+	Pumping = true;
+
+	PumpTime_Current = PumpTime;
+}
+
+void AWeapon::TriggerPressed()
+{
+	Firing = true;
+	TriggerPulled = true;
+}
+
+void AWeapon::TriggerReleased()
+{
+	Firing = false;
 }
 
 // Called every frame
@@ -179,25 +251,54 @@ void AWeapon::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	if(Reloading)
-	{
-		ReloadTimeCurrent -= DeltaTime;
+	if (Firing) {
+		Fire();
+	}
+	TriggerPulled = false;
 
-		if(ReloadTimeCurrent <= 0)
+	if (Pumping) {
+		PumpTime_Current -= DeltaTime;
+
+		if (PumpTime_Current <= 0) {
+			Pumping = false;
+			Pumped = true;
+		}
+	}
+
+	if (Reloading)
+	{
+		ReloadTime_Current -= DeltaTime;
+
+		if (ReloadTime_Current <= 0)
 		{
-			Reloading = false;
-			int delta = MagazineMax - MagazineCurrent;
-			if(AmmoCurrent >= delta || IsSideArm)
-			{
-				MagazineCurrent += delta;
-				AmmoCurrent -= delta;
+			if (IsIndividuallyLoaded) {
+				MagazineCurrent++;
+				AmmoCurrent--;
+				ReloadIndividual(ReloadAnimation->GetPlayLength() / ReloadAnimation->RateScale);
+
 			}
 			else
 			{
-				MagazineCurrent = AmmoCurrent;
-				AmmoCurrent = 0;
+				Reloading = false;
+
+				int MagazineDifference = MagazineMax - MagazineCurrent;
+
+				if (AmmoCurrent >= MagazineDifference || IsSideArm)
+				{
+
+					MagazineCurrent += MagazineDifference;
+					AmmoCurrent -= MagazineDifference;
+				}
+				else
+				{
+					MagazineCurrent = AmmoCurrent;
+					AmmoCurrent = 0;
+				}
 			}
+			
 		}
+
+		
 	}
 
 	ShootIntervalCurrent -= DeltaTime;
@@ -205,5 +306,21 @@ void AWeapon::Tick(float DeltaTime)
 	BloomCurrent -= BloomDelta*DeltaTime;
 	if(BloomCurrent < 0.0)
 		BloomCurrent = 0.0;
+
+	if (BloomCurrent != BloomCurrent_Previous) {
+		if (MyFPSCharacter == NULL) {
+			MyFPSCharacter = (AFPSCharacter*)UGameplayStatics::GetPlayerCharacter(GetWorld(), 0);
+		}
+		MyFPSCharacter->BloomUpdateEvent(BloomCurrent, this);
+	}
+
+
+	BloomCurrent_Previous = BloomCurrent;
+	if (GEngine) {
+		GEngine->AddOnScreenDebugMessage(8, 5.0f, FColor::Blue, TEXT("IndividualShotIndex: ") + FString::FromInt(IndividualReloadIndex));
+		GEngine->AddOnScreenDebugMessage(9, 5.0f, FColor::Blue, (Reloading) ? TEXT("TRUE"):TEXT("FALSE"));
+		GEngine->AddOnScreenDebugMessage(10, 5.0f, FColor::Blue, TEXT("IndividualShotIndex: ") + FString::FromInt(IndividualReloadTimer));
+		GEngine->AddOnScreenDebugMessage(11, 5.0f, FColor::Blue, (Firing) ? TEXT("TRUE") : TEXT("FALSE"));
+	}
 }
 

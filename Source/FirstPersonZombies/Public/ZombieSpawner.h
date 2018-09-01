@@ -4,6 +4,8 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "FPSZombie.h"
+#include "Window.h"
 #include "ZombieSpawner.generated.h"
 
 class AZombieManager;
@@ -25,10 +27,16 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Gameplay")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "_Spawner")
 	AActor* InitialTargetActor;
 
-	UPROPERTY(BlueprintReadWrite, Category = "Gameplay")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "_Spawner")
+	AWindow* InitialTargetWindow;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "_Spawner")
+	ZombieStateEnum InitialState = ZombieStateEnum::VE_Spawning;
+
+	UPROPERTY(BlueprintReadWrite, Category = "_Spawner")
 	bool IsActive = true;
 
 	// This value is only updated periodically, when needed.
