@@ -25,7 +25,7 @@ AWeapon::AWeapon()
 
 void AWeapon::FireEnd()
 {
-	Firing = false;
+	JustFired = false;
 }
 
 // Called when the game starts or when spawned
@@ -79,9 +79,9 @@ void AWeapon::Fire()
 		}
 	}
 
-	//Firing = true;
+	JustFired = true;
 	/* Activate the fuze to explode the bomb after several seconds */
-	//GetWorld()->GetTimerManager().SetTimer(FireEndTimerHandle, this, &AWeapon::FireEnd, MinimumFireTime, false);
+	GetWorld()->GetTimerManager().SetTimer(FireEndTimerHandle, this, &AWeapon::FireEnd, MinimumFireTime, false);
 
 	// try and play the sound if specified
 	if (FireSound)
@@ -321,6 +321,7 @@ void AWeapon::Tick(float DeltaTime)
 		GEngine->AddOnScreenDebugMessage(9, 5.0f, FColor::Blue, (Reloading) ? TEXT("TRUE"):TEXT("FALSE"));
 		GEngine->AddOnScreenDebugMessage(10, 5.0f, FColor::Blue, TEXT("IndividualShotIndex: ") + FString::FromInt(IndividualReloadTimer));
 		GEngine->AddOnScreenDebugMessage(11, 5.0f, FColor::Blue, (Firing) ? TEXT("TRUE") : TEXT("FALSE"));
+		GEngine->AddOnScreenDebugMessage(12, 5.0f, FColor::Blue, (JustFired) ? TEXT("TRUE") : TEXT("FALSE"));
 	}
 }
 

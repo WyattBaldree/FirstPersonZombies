@@ -23,8 +23,6 @@ private:
 
 	void FireEnd();
 
-	float MinimumFireTime = .1;
-
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -105,6 +103,9 @@ public:
 		AFPSCharacter* MyFPSCharacter = NULL;
 
 	//////////////////////////////////////////////////////////////////////////// Stats
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Weapon")
+	float MinimumFireTime = .1;
 	
 	// Whether get a scope overlay while aiming down the sights.
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Weapon")
@@ -218,6 +219,9 @@ public:
 
 	UPROPERTY(BlueprintReadWrite)
 		bool TriggerPulled = false;
+
+	UPROPERTY(BlueprintReadWrite)
+		bool JustFired = false;
 
 	UPROPERTY(BlueprintReadWrite)
 	int IndividualReloadIndex = 0;
