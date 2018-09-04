@@ -115,7 +115,7 @@ void AFPSCharacter::Tick(float DeltaTime)
 	if (HeldWeapon) {
 		// If we are currently aiming, increase AimDownSightsAmount until it reaches 1
 		// Else reduce it until it reaches 0
-		if (AimingDownSights) {
+		if (AimingDownSights && !HeldWeapon->Reloading) {
 			if (AimDownSightsAmount < 1) {
 				AimDownSightsAmount += HeldWeapon->AimSpeed;
 			}
@@ -140,7 +140,9 @@ void AFPSCharacter::Tick(float DeltaTime)
 
 		// If our aim amount has changed, we need to move our gun and update our fov
 		
+
 		if (AimDownSightsAmount_Current != AimDownSightsAmount) {
+
 			AimDownSightsAmount_Current = AimDownSightsAmount;
 
 			FPSCameraComponent->FieldOfView = PlayerFieldOfView - AimDownSightsAmount * HeldWeapon->ZoomAmount;

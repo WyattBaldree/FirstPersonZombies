@@ -34,34 +34,6 @@ protected:
 	// Projectile class to spawn.
 	UPROPERTY(EditDefaultsOnly, Category = "Gameplay")
 	TSubclassOf<class AFPSProjectile> ProjectileClass;
-
-	/** AnimMontage to play each time we fire */
-	UPROPERTY(EditDefaultsOnly, Category = "Gameplay")
-	UAnimSequence* FireAnimation;
-
-	/** AnimMontage to play each time we reload */
-	UPROPERTY(EditDefaultsOnly, Category = "Gameplay")
-	UAnimSequence* ReloadAnimation;
-
-	/** AnimMontage to play each time we pump, cock, or otherwise ready a new bullet for firing */
-	UPROPERTY(EditDefaultsOnly, Category = "Gameplay", meta = (EditCondition = "IsIndividuallyLoaded"))
-	UAnimSequence* PumpAnimation;
-
-	/** AnimMontage to play each time we pump, cock, or otherwise ready a new bullet for firing */
-	UPROPERTY(EditDefaultsOnly, Category = "Gameplay", meta = (EditCondition = "IsIndividuallyLoaded"))
-		UAnimSequence* IndividualReloadStartAnimation;
-
-	/** AnimMontage to play each time we pump, cock, or otherwise ready a new bullet for firing */
-	UPROPERTY(EditDefaultsOnly, Category = "Gameplay", meta = (EditCondition = "IsIndividuallyLoaded"))
-		UAnimSequence* IndividualReloadEndAnimation;
-
-	/** Sound to play each time we fire */
-	UPROPERTY(EditDefaultsOnly, Category = "Gameplay")
-	USoundBase* FireSound;
-
-	/** Sound to play each time we fire */
-	UPROPERTY(EditDefaultsOnly, Category = "Gameplay")
-	USoundBase* ReloadSound;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Gameplay")
 	UTexture2D* Display;
@@ -75,9 +47,31 @@ protected:
 public:
 	// Sets default values for this actor's properties
 	AWeapon();
-
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
+
+	//////////////////////////////////////////////////////// Animations
+	/** AnimMontage to play each time we fire */
+	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category = "Gameplay")
+		UAnimSequence* FireAnimation;
+
+	/** AnimMontage to play each time we reload */
+	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category = "Gameplay")
+		UAnimSequence* ReloadAnimation;
+
+	/** AnimMontage to play each time we pump, cock, or otherwise ready a new bullet for firing */
+	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category = "Gameplay", meta = (EditCondition = "IsIndividuallyLoaded"))
+		UAnimSequence* PumpAnimation;
+
+	/** AnimMontage to play each time we pump, cock, or otherwise ready a new bullet for firing */
+	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category = "Gameplay", meta = (EditCondition = "IsIndividuallyLoaded"))
+		UAnimSequence* IndividualReloadStartAnimation;
+
+	/** AnimMontage to play each time we pump, cock, or otherwise ready a new bullet for firing */
+	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category = "Gameplay", meta = (EditCondition = "IsIndividuallyLoaded"))
+		UAnimSequence* IndividualReloadEndAnimation;
+
+	///////////////////////////////////////////////////////////////////////// Functions
 
 	UFUNCTION(BlueprintCallable, Category = "Weapon")
 		void Fire();
@@ -104,7 +98,7 @@ public:
 
 	//////////////////////////////////////////////////////////////////////////// Stats
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Weapon")
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Weapon")		
 	float MinimumFireTime = .1;
 	
 	// Whether get a scope overlay while aiming down the sights.
@@ -126,6 +120,10 @@ public:
 	// Whether we need to play a pump-action/bolt-action animation after firing
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Weapon")
 		bool IsPumpAction = false;
+
+	// How many bullets fit in the magazine/clip/tube
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
+		int ProjectilesPerShot = 1;
 
 	// How many bullets fit in the magazine/clip/tube
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
@@ -153,7 +151,11 @@ public:
 
 	// How fast our bloom decreases
 	UPROPERTY(EditAnywhere, Category = "Weapon")
-		float BloomDelta = 0.9;
+		float BloomDecay = 0.9;
+
+	// Our minimum bloom
+	UPROPERTY(EditAnywhere, Category = "Weapon")
+		float BloomBase = 0.0;
 
 	// How wide our reticle is at 0 bloom
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Weapon")

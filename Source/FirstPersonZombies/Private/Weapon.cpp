@@ -83,12 +83,6 @@ void AWeapon::Fire()
 	/* Activate the fuze to explode the bomb after several seconds */
 	GetWorld()->GetTimerManager().SetTimer(FireEndTimerHandle, this, &AWeapon::FireEnd, MinimumFireTime, false);
 
-	// try and play the sound if specified
-	if (FireSound)
-	{
-		UGameplayStatics::PlaySoundAtLocation(this, FireSound, GetActorLocation());
-	}
-
 	if (GEngine) {
 		//GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Red, TEXT("firing"));
 	}
@@ -114,45 +108,46 @@ void AWeapon::Fire()
 
 		
 		// How much are we currently blooming
-		float BloomMagnitude = BloomAmount * BloomCurrent;
+		float BloomMagnitude = BloomBase + (BloomAmount * BloomCurrent);
+		
+		// For shotugns make multiple bullets
+		for (int i = 0; i < ProjectilesPerShot; i++) {
+			// Get a vector orthogonal to our muzzle direction
+			FVector OrthogonalMuzzleVector = FVector(1.0f, 1.0f, (-direction.X - direction.Y) / direction.Z).GetSafeNormal(.01);
 
-		// Get a vector orthogonal to our muzzle direction
-		FVector OrthogonalMuzzleVector = FVector(1.0f,1.0f,(-direction.X - direction.Y)/direction.Z).GetSafeNormal(.01);
-		// Rotate the orthogonal vecotr around our muzzle direction
-		FVector OrthogonalMuzzleVectorRotated = OrthogonalMuzzleVector.RotateAngleAxis(FMath::RandRange(0.0f, 360.0f), direction.GetSafeNormal(.01));
-		// Make a new vector in a random direction based off of bloom magnitude
-		FVector NewDirection = direction.GetSafeNormal(.01).operator+(OrthogonalMuzzleVectorRotated.GetSafeNormal(.000001) * FMath::RandRange(0.0f, BloomMagnitude));
+			// Rotate the orthogonal vecotr around our muzzle direction
+			FVector OrthogonalMuzzleVectorRotated = OrthogonalMuzzleVector.RotateAngleAxis(FMath::RandRange(0.0f, 360.0f), direction.GetSafeNormal(.01));
 
-		//Trnasform MuzzleOffet from camera space to world space
-		FVector MuzzleLocation = location;
-		FRotator MuzzleRotation = NewDirection.Rotation();
+			// Make a new vector in a random direction based off of bloom magnitude
+			FVector NewDirection = direction.GetSafeNormal(.01).operator+(OrthogonalMuzzleVectorRotated.GetSafeNormal(.000001) * FMath::RandRange(0.0f, BloomMagnitude));
 
-		/*// skew to point slightly for bloom
-		float BloomMagnitude = BloomAmount * BloomCurrent
-		MuzzleRotation.Pitch += BloomAmount * BloomCurrent * (MagazineCurrent % 2) ? 1 : -1;
-		MuzzleRotation.Yaw += BloomAmount * BloomCurrent * (MagazineCurrent % 3) ? 1 : -1;*/
-		UWorld* World = GetWorld();
-		if (World)
-		{
-			FActorSpawnParameters SpawnParams;
-			SpawnParams.Owner = this;
-			SpawnParams.Instigator = Instigator;
-			//Spawn the projectile at the muzzle
-			AFPSProjectile* Projectile = World->SpawnActor<AFPSProjectile>(ProjectileClass, MuzzleLocation, MuzzleRotation, SpawnParams);
-			if (GEngine) {
-				//GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Red, TEXT("firing2"));
-			}
-			
-			if (Projectile)
+			//Trnasform MuzzleOffet from camera space to world space
+			FVector MuzzleLocation = location;
+			FRotator MuzzleRotation = NewDirection.Rotation();
+
+			UWorld* World = GetWorld();
+			if (World)
 			{
-				FVector LaunchDirection = NewDirection;// MuzzleRotation.Vector();
-				Projectile->FireInDirection(LaunchDirection);
-				Projectile->Damage = Damage;
-				Projectile->Pierce = Pierce;
-				
-				if(Debug) DrawDebugLine(World, MuzzleLocation, MuzzleLocation.operator+(NewDirection*10000.0f), FColor(255, 0, 0), false, 5, 0, 1.0f);
+				FActorSpawnParameters SpawnParams;
+				SpawnParams.Owner = this;
+				SpawnParams.Instigator = Instigator;
+				//Spawn the projectile at the muzzle
+				AFPSProjectile* Projectile = World->SpawnActor<AFPSProjectile>(ProjectileClass, MuzzleLocation, MuzzleRotation, SpawnParams);
+				if (GEngine) {
+					//GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Red, TEXT("firing2"));
+				}
+
+				if (Projectile)
+				{
+					FVector LaunchDirection = NewDirection;// MuzzleRotation.Vector();
+					Projectile->FireInDirection(LaunchDirection);
+					Projectile->Damage = Damage;
+					Projectile->Pierce = Pierce;
+
+					if (Debug) DrawDebugLine(World, MuzzleLocation, MuzzleLocation.operator+(NewDirection*10000.0f), FColor(255, 0, 0), false, 5, 0, 1.0f);
 
 
+				}
 			}
 		}
 	}
@@ -198,12 +193,6 @@ void AWeapon::ReloadMagazine() {
 			Pumping = false;
 			Pumped = false;
 		}
-	}
-
-	// try to play the reload sound effect
-	if (ReloadSound)
-	{
-		UGameplayStatics::PlaySoundAtLocation(this, ReloadSound, GetActorLocation());
 	}
 
 	// try and play a reload animation if specified
@@ -303,7 +292,7 @@ void AWeapon::Tick(float DeltaTime)
 
 	ShootIntervalCurrent -= DeltaTime;
 	
-	BloomCurrent -= BloomDelta*DeltaTime;
+	BloomCurrent -= BloomDecay*DeltaTime;
 	if(BloomCurrent < 0.0)
 		BloomCurrent = 0.0;
 
