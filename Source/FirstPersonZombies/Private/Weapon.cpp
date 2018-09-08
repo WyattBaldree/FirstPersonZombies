@@ -3,7 +3,7 @@
 #include "Weapon.h"
 #include "Animation/AnimSequence.h"
 #include "DrawDebugHelpers.h"
-#include "FPSCharacter.h"
+#include "Camera/CameraComponent.h"
 #include "Kismet/GameplayStatics.h"
 
 // Sets default values
@@ -64,8 +64,7 @@ void AWeapon::Fire()
 	
 	if(MagazineCurrent <= 0) return;
 
-	//AnimInstance->StopSlotAnimation(0, "Arms");
-
+	// Try to shake the camera
 	if (CameraShake) {
 		UGameplayStatics::PlayWorldCameraShake(this, CameraShake, GetActorLocation(), 0.0f, 5000.0f);
 	}
@@ -87,6 +86,14 @@ void AWeapon::Fire()
 		//GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Red, TEXT("firing"));
 	}
 
+	if (MyFPSCharacter == NULL) {
+		MyFPSCharacter = (AFPSCharacter*)UGameplayStatics::GetPlayerCharacter(GetWorld(), 0);
+	}
+	MyFPSCharacter->Controller->SetControlRotation(MyFPSCharacter->FPSCameraComponent->GetComponentRotation() + FRotator(RecoilVertical, FMath::RandRange(-RecoilHorizontal, RecoilHorizontal), 0));
+	//MyFPSCharacter->FPSCameraComponent->AddLocalRotation(FQuat(1, 1, 1, 1));
+
+	//MyFPSCharacter->FPSCameraComponent->RelativeRotation += FRotator(05, 0, 1.2f);
+	
 	// Attempt to fire a projectile.
 	if (ProjectileClass)
 	{
@@ -105,6 +112,9 @@ void AWeapon::Fire()
 			location,
 			direction
 		);
+
+		
+
 
 		
 		// How much are we currently blooming
@@ -311,6 +321,7 @@ void AWeapon::Tick(float DeltaTime)
 		GEngine->AddOnScreenDebugMessage(10, 5.0f, FColor::Blue, TEXT("IndividualShotIndex: ") + FString::FromInt(IndividualReloadTimer));
 		GEngine->AddOnScreenDebugMessage(11, 5.0f, FColor::Blue, (Firing) ? TEXT("TRUE") : TEXT("FALSE"));
 		GEngine->AddOnScreenDebugMessage(12, 5.0f, FColor::Blue, (JustFired) ? TEXT("TRUE") : TEXT("FALSE"));
+		
 	}
 }
 

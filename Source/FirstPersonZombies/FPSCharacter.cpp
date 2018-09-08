@@ -57,7 +57,6 @@ AFPSCharacter::AFPSCharacter()
 	
 	// Default move speed
 	GetCharacterMovement()->MaxWalkSpeed = 500.0f;
-
 	// The owning player doesn't see the regular (third-person) body mesh.
 	GetMesh()->SetOwnerNoSee(true);
 
@@ -88,7 +87,7 @@ void AFPSCharacter::BeginPlay()
 		SpawnParams.Owner = this;
 		SpawnParams.Instigator = Instigator;
 		AWeapon* weapon = World->SpawnActor<AWeapon>(StartingWeapon, FVector(0, 0, 0), FRotator(1, 1, 1), SpawnParams);
-		EquipSideArm(weapon);
+		EquipWeapon(weapon, 0, true);
 	}
 
 	if (wMyHud) // Check if the Asset is assigned in the blueprint.
@@ -112,12 +111,38 @@ void AFPSCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 	
+	if (Dequiping) {
+		if (HeldWeapon) {
+			EquipAmount += HeldWeapon->DequipSpeed * DeltaTime;
+		}
+		if (EquipAmount > 1 || !HeldWeapon) {
+			EquipAmount = 1.0;
+			Dequiping = false;
+			if (Switching) {
+				SwitchWeapon(WeaponIndexTarget, EquipSideArmTarget);
+			}
+			else 
+			{
+				EquipWeapon(EquipWeaponTarget, WeaponIndexTarget, EquipSideArmTarget);
+			}
+		}
+	}
+	else {
+		EquipAmount -= HeldWeapon->EquipSpeed*DeltaTime;
+		if(EquipAmount < 0) {
+			EquipAmount = 0.0;
+		}
+	}
+
+
+	GEngine->AddOnScreenDebugMessage(13, 5.0f, FColor::Blue, TEXT("EquipAmount: ") + FString::SanitizeFloat(EquipAmount));
+
 	if (HeldWeapon) {
 		// If we are currently aiming, increase AimDownSightsAmount until it reaches 1
 		// Else reduce it until it reaches 0
 		if (AimingDownSights && !HeldWeapon->Reloading) {
 			if (AimDownSightsAmount < 1) {
-				AimDownSightsAmount += HeldWeapon->AimSpeed;
+				AimDownSightsAmount += HeldWeapon->AimSpeed * DeltaTime;
 			}
 			else {
 				AimDownSightsAmount = 1.0;
@@ -125,7 +150,7 @@ void AFPSCharacter::Tick(float DeltaTime)
 		}
 		else {
 			if (AimDownSightsAmount > 0) {
-				AimDownSightsAmount -= HeldWeapon->AimSpeed;
+				AimDownSightsAmount -= HeldWeapon->AimSpeed * DeltaTime;
 			}
 			else {
 				AimDownSightsAmount = 0.0;
@@ -136,7 +161,7 @@ void AFPSCharacter::Tick(float DeltaTime)
 		FRotator CameraRotation;
 		GetActorEyesViewPoint(CameraLocation, CameraRotation);
 
-		HeldWeapon->SetActorLocation(CameraLocation + FTransform(CameraRotation).TransformVector(HeldWeapon->GunOffset + ((HeldWeapon->GunOffset_Sights - HeldWeapon->GunOffset)*AimDownSightsAmount)));
+		HeldWeapon->SetActorLocation(CameraLocation + FTransform(CameraRotation).TransformVector(HeldWeapon->GunOffset + ((HeldWeapon->GunOffset_Sights - HeldWeapon->GunOffset ) * AimDownSightsAmount) + (FVector(0,0,-1) * HeldWeapon->EquipLowerAmount * EquipAmount)));
 
 		// If our aim amount has changed, we need to move our gun and update our fov
 		
@@ -178,44 +203,55 @@ void AFPSCharacter::Tick(float DeltaTime)
 
 // When this function is called, the player switches their currently held weapon to the weapon 
 // at WeaponIndex
-void AFPSCharacter::SwitchWeapon(int WeaponIndex)
+void AFPSCharacter::SwitchWeapon(int WeaponIndex, bool EquipSideArm)
 {
-	if (Weapons[WeaponIndex]) {
-		if (HeldWeapon) HeldWeapon->SetActorHiddenInGame(true);
-		HeldWeapon = Weapons[WeaponIndex];
-		HeldWeapon->SetActorHiddenInGame(false);
-		CurrentWeapon = WeaponIndex;
-		HoldingSideArm = false;
-		ScopeTextureUpdateEvent();
-		ScopeOpacityUpdateEvent(0);
-		AimDownSightsAmount = 0;
+	if (HeldWeapon) HeldWeapon->SetActorHiddenInGame(true);
+
+	if (EquipSideArm) {
+		if (SideArm) {
+			HeldWeapon = SideArm;
+			HoldingSideArm = true;
+		}
 	}
+	else {
+		if (Weapons[WeaponIndex]) {
+			HeldWeapon = Weapons[WeaponIndex];
+			CurrentWeapon = WeaponIndex;
+			HoldingSideArm = false;
+
+		}
+	}
+
+	HeldWeapon->SetActorHiddenInGame(false);
+	ScopeTextureUpdateEvent();
+	ScopeOpacityUpdateEvent(0);
+	AimDownSightsAmount = 0;
+}
+
+void AFPSCharacter::SwitchWeaponStart(int WeaponIndex, bool EquipSideArm)
+{
+	WeaponIndexTarget = WeaponIndex;
+	EquipSideArmTarget = EquipSideArm;
+
+	Dequiping = true;
+	EquipAmount = 0.0;
+	Switching = true;
 }
 
 // When this function is called, the player switches their currently held weapon to the sidearm
 void AFPSCharacter::SwitchSideArm()
 {
-	//HeldWepon = sidearm
-	if (SideArm) {
-		if (HeldWeapon) HeldWeapon->SetActorHiddenInGame(true);
-		HeldWeapon = SideArm;
-		HeldWeapon->SetActorHiddenInGame(false);
-		//CurrentWeapon = 2;
-		HoldingSideArm = true;
-		ScopeTextureUpdateEvent();
-		ScopeOpacityUpdateEvent(0);
-		AimDownSightsAmount = 0;
-	}
+	SwitchWeaponStart(0, true);
 }
 
 void AFPSCharacter::SwitchWeapon1()
 {
-	SwitchWeapon(0);
+	SwitchWeaponStart(0);
 }
 
 void AFPSCharacter::SwitchWeapon2()
 {
-	SwitchWeapon(1);
+	SwitchWeaponStart(1);
 }
 
 bool AFPSCharacter::DoTransaction(int Price)
@@ -238,20 +274,29 @@ int AFPSCharacter::GetCash()
 
 // This function is strictly for adding a new weapon to the player's inventory. 
 // If a weapon is already in the WeaponIndex passed, the weapon is destroyed.
-void AFPSCharacter::EquipWeapon(AWeapon* weapon, int WeaponIndex)
+void AFPSCharacter::EquipWeapon(AWeapon* weapon, int WeaponIndex, bool EquipSideArm)
 {
 	// HeldWeapon = Wapons[WeaponIndex];
 	if (weapon) {
-		if(Weapons[WeaponIndex]) Weapons[WeaponIndex]->Destroy();
-		
-		
+
 		if (HeldWeapon) HeldWeapon->SetActorHiddenInGame(true);
+
 		HeldWeapon = weapon;
-		Weapons[WeaponIndex] = weapon;
+
+		if (SideArm) {
+			if (SideArm) SideArm->Destroy();
+			SideArm = weapon;
+			HoldingSideArm = true;
+		}
+		else 
+		{
+			if(Weapons[WeaponIndex]) Weapons[WeaponIndex]->Destroy();
+			Weapons[WeaponIndex] = weapon;
+			CurrentWeapon = WeaponIndex;
+			HoldingSideArm = false;
+		}
 		
 		HeldWeapon->SetActorHiddenInGame(false);
-		CurrentWeapon = WeaponIndex;
-		HoldingSideArm = false;
 
 		FVector CameraLocation;
 		FRotator CameraRotation;
@@ -269,7 +314,7 @@ void AFPSCharacter::EquipWeapon(AWeapon* weapon, int WeaponIndex)
 	}
 }
 
-// This function is strictly for adding a new SideArm to the player's inventory. 
+/*// This function is strictly for adding a new SideArm to the player's inventory. 
 // If the player already has a SideArm, the SideArm is destroyed.
 void AFPSCharacter::EquipSideArm(AWeapon * weapon)
 {
@@ -282,9 +327,7 @@ void AFPSCharacter::EquipSideArm(AWeapon * weapon)
 
 		HeldWeapon = weapon;
 		SideArm = weapon;
-		//HeldWeapon->bHidden = false;
 		HeldWeapon->SetActorHiddenInGame(false);
-		//CurrentWeapon = 2;
 		HoldingSideArm = true;
 
 		FVector CameraLocation;
@@ -301,12 +344,18 @@ void AFPSCharacter::EquipSideArm(AWeapon * weapon)
 		ScopeOpacityUpdateEvent(0);
 		AimDownSightsAmount = 0;
 	}
+}*/
+
+void AFPSCharacter::EquipStart(AWeapon * weapon, int WeaponIndex, bool EquipSideArm)
+{
+	EquipWeaponTarget = weapon;
+	WeaponIndexTarget = WeaponIndex;
+	EquipSideArmTarget = EquipSideArm;
+
+	Dequiping = true;
+	EquipAmount = 0.0;
+	Switching = false;
 }
-
-
-
-
-
 
 // Called to bind functionality to input
 void AFPSCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -338,6 +387,9 @@ void AFPSCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompon
 
 	PlayerInputComponent->BindAction("Aim", IE_Pressed, this, &AFPSCharacter::AimPressed);
 	PlayerInputComponent->BindAction("Aim", IE_Released, this, &AFPSCharacter::AimReleased);
+
+	PlayerInputComponent->BindAction("Crouch", IE_Pressed, this, &AFPSCharacter::CrouchStart);
+	PlayerInputComponent->BindAction("Crouch", IE_Released, this, &AFPSCharacter::CrouchStop);
 }
 
 void AFPSCharacter::CashUpdateEvent_Implementation(int NewValue)
@@ -433,6 +485,21 @@ void AFPSCharacter::Reload()
 	if (HeldWeapon) {
 		HeldWeapon->Reload();
 	}
+}
+
+void AFPSCharacter::CrouchStart()
+{
+	GEngine->AddOnScreenDebugMessage(15, 2.0f, FColor::Blue, TEXT("CrouchStart"));
+	if (CanCrouch())
+	{
+		GetCharacterMovement()->bWantsToCrouch = true;
+	}
+}
+
+void AFPSCharacter::CrouchStop()
+{
+	GEngine->AddOnScreenDebugMessage(15, 10.0f, FColor::Blue, TEXT("CrouchEnd"));
+	GetCharacterMovement()->bWantsToCrouch = false;
 }
 
 void AFPSCharacter::DebugWyatt()

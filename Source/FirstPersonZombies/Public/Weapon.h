@@ -6,6 +6,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "FPSProjectile.h"
+#include "FPSCharacter.h"
 #include "Weapon.generated.h"
 
 class UInputComponent;
@@ -145,6 +146,26 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Weapon", meta = (EditCondition = "IsPumpAction"))
 		float PumpTime = 2.0;
 
+	// How much our camera will go up when we shoot
+	UPROPERTY(EditAnywhere, Category = "Weapon")
+		float RecoilVertical = 1;
+
+	// How fast we equip
+	UPROPERTY(EditAnywhere, Category = "Weapon")
+		float EquipSpeed = .05;
+
+	// How fast we dequip
+	UPROPERTY(EditAnywhere, Category = "Weapon")
+		float DequipSpeed = .05;
+
+	// How fast we dequip
+	UPROPERTY(EditAnywhere, Category = "Weapon")
+		float EquipLowerAmount = 50;
+
+	// How much our camera can sway when we shoot
+	UPROPERTY(EditAnywhere, Category = "Weapon")
+		float RecoilHorizontal = .5;
+
 	// How much our bloom increases when we shoot
 	UPROPERTY(EditAnywhere, Category = "Weapon")
 		float Bloom = 0.35;
@@ -171,7 +192,7 @@ public:
 
 	// How fast we aim
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
-		float AimSpeed = 0.2;
+		float AimSpeed = 3;
 
 	// How far we zoom in when aiming
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")

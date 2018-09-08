@@ -32,10 +32,6 @@ protected:
 
 	AInteractableActor* GetClosestInteractable();
 
-	/** First person camera */
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera")
-	UCameraComponent* FPSCameraComponent;
-
 	/** Weapon we start with */
 	UPROPERTY(EditAnywhere, Category = "Gameplay")
 	TSubclassOf<class AWeapon> StartingWeapon;
@@ -47,6 +43,10 @@ protected:
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
+
+	/** First person camera */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera")
+		UCameraComponent* FPSCameraComponent;
 
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
@@ -155,7 +155,7 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Gameplay")
 		AWeapon* SideArm;
 
-	// Wepon slots (does not include the sidearm)
+	// Weapon slots (does not include the sidearm)
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Gameplay")
 		TArray<AWeapon*> Weapons;
 
@@ -192,9 +192,19 @@ public:
 	UFUNCTION()
 		void Reload();
 
+	UFUNCTION()
+		void CrouchStart();
+
+	UFUNCTION()
+		void CrouchStop();
+
 	// Switch to a weapon
 	UFUNCTION(BlueprintCallable)
-		void SwitchWeapon(int WeaponIndex);
+		void SwitchWeapon(int WeaponIndex, bool EquipSideArm = false);
+
+	// Switch to a weapon
+	UFUNCTION(BlueprintCallable)
+		void SwitchWeaponStart(int WeaponIndex, bool EquipSideArm = false);
 
 	// Switch to your sidearm
 	UFUNCTION(BlueprintCallable)
@@ -210,11 +220,29 @@ public:
 
 	// Equip a new weapon to one of your 2 wepon slots
 	UFUNCTION(BlueprintCallable)
-		void EquipWeapon(AWeapon* weapon, int WeaponIndex);
+		void EquipWeapon(AWeapon* weapon, int WeaponIndex, bool EquipSideArm = false);
 
-	// Equip a new weapon to one of your SideArm slot
+	/*// Equip a new weapon to one of your SideArm slot
 	UFUNCTION(BlueprintCallable)
-		void EquipSideArm(AWeapon* weapon);
+		void EquipSideArm(AWeapon* weapon);*/
+
+	// equip a new weapon to one of your weapon slots after a delay
+	UFUNCTION(BlueprintCallable)
+		void EquipStart(AWeapon* weapon, int WeaponIndex, bool EquipSideArm = false);
+
+	// The current equip timer.
+	UPROPERTY(BlueprintReadOnly, Category = "Camera")
+		float EquipAmount;
+
+	// The current equip timer.
+	UPROPERTY(BlueprintReadOnly, Category = "Camera")
+		float Dequiping = false;
+
+	AWeapon* EquipWeaponTarget;
+	int WeaponIndexTarget;
+	bool EquipSideArmTarget;
+	bool Switching;
+
 
 	////////////////////////////////////////////////////////////////////////////////////////////// Controls
 
