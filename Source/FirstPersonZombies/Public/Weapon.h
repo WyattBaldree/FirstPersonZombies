@@ -230,6 +230,9 @@ public:
 	
 	UPROPERTY(BlueprintReadWrite)
 	bool Reloading = false;
+
+	UPROPERTY(BlueprintReadWrite)
+		bool Aiming = false;
 	
 	UPROPERTY(BlueprintReadWrite)
 		bool Pumping = false;

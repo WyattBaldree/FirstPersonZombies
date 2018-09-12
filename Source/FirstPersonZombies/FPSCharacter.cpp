@@ -140,7 +140,8 @@ void AFPSCharacter::Tick(float DeltaTime)
 	if (HeldWeapon) {
 		// If we are currently aiming, increase AimDownSightsAmount until it reaches 1
 		// Else reduce it until it reaches 0
-		if (AimingDownSights && !HeldWeapon->Reloading) {
+		if (AimingDownSights && !HeldWeapon->Reloading && EquipAmount <= 0) {
+			HeldWeapon->Aiming = true;
 			if (AimDownSightsAmount < 1) {
 				AimDownSightsAmount += HeldWeapon->AimSpeed * DeltaTime;
 			}
@@ -149,6 +150,7 @@ void AFPSCharacter::Tick(float DeltaTime)
 			}
 		}
 		else {
+			HeldWeapon->Aiming = false;
 			if (AimDownSightsAmount > 0) {
 				AimDownSightsAmount -= HeldWeapon->AimSpeed * DeltaTime;
 			}
@@ -205,7 +207,10 @@ void AFPSCharacter::Tick(float DeltaTime)
 // at WeaponIndex
 void AFPSCharacter::SwitchWeapon(int WeaponIndex, bool EquipSideArm)
 {
-	if (HeldWeapon) HeldWeapon->SetActorHiddenInGame(true);
+	if (HeldWeapon) {
+		HeldWeapon->SetActorHiddenInGame(true);
+		HeldWeapon->Aiming = false;
+	}
 
 	if (EquipSideArm) {
 		if (SideArm) {
@@ -223,6 +228,7 @@ void AFPSCharacter::SwitchWeapon(int WeaponIndex, bool EquipSideArm)
 	}
 
 	HeldWeapon->SetActorHiddenInGame(false);
+	HeldWeapon->Aiming = false;
 	ScopeTextureUpdateEvent();
 	ScopeOpacityUpdateEvent(0);
 	AimDownSightsAmount = 0;
@@ -279,7 +285,10 @@ void AFPSCharacter::EquipWeapon(AWeapon* weapon, int WeaponIndex, bool EquipSide
 	// HeldWeapon = Wapons[WeaponIndex];
 	if (weapon) {
 
-		if (HeldWeapon) HeldWeapon->SetActorHiddenInGame(true);
+		if (HeldWeapon) {
+			HeldWeapon->SetActorHiddenInGame(true);
+			HeldWeapon->Aiming = false;
+		}
 
 		HeldWeapon = weapon;
 
@@ -297,6 +306,7 @@ void AFPSCharacter::EquipWeapon(AWeapon* weapon, int WeaponIndex, bool EquipSide
 		}
 		
 		HeldWeapon->SetActorHiddenInGame(false);
+		HeldWeapon->Aiming = false;
 
 		FVector CameraLocation;
 		FRotator CameraRotation;
