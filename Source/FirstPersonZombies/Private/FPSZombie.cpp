@@ -80,6 +80,7 @@ void AFPSZombie::Tick(float DeltaTime)
 			}
 			break;
 		case ZombieStateEnum::VE_AttackWindow:
+			AttackNoiseEvent();
 			if (TargetWindow) {
 				MyAIController->MoveToLocation(TargetWindow->AttackPoint->GetComponentLocation() + ZombieFeet);
 			}
@@ -93,6 +94,7 @@ void AFPSZombie::Tick(float DeltaTime)
 			}
 			break;
 		case ZombieStateEnum::VE_Dead:
+			DieNoiseEvent();
 			DeathTimerCurrent = DeathTimer;
 			if (ZombieState == ZombieStateEnum::VE_ClimbThroughWindow) {
 				if (TargetWindow) {
@@ -254,6 +256,30 @@ void AFPSZombie::Tick(float DeltaTime)
 
 }
 
+void AFPSZombie::IdleNoiseEvent_Implementation()
+{
+	// This is what happens if we don't create a bluleprint event
+	UE_LOG(LogTemp, Warning, TEXT("Idle Zombie Sound."));
+}
+
+void AFPSZombie::HurtNoiseEvent_Implementation()
+{
+	// This is what happens if we don't create a bluleprint event
+	UE_LOG(LogTemp, Warning, TEXT("Zombie Ow."));
+}
+
+void AFPSZombie::DieNoiseEvent_Implementation()
+{
+	// This is what happens if we don't create a bluleprint event
+	UE_LOG(LogTemp, Warning, TEXT("AAAAUUUUGGGHHHHHH!"));
+}
+
+void AFPSZombie::AttackNoiseEvent_Implementation()
+{
+	// This is what happens if we don't create a bluleprint event
+	UE_LOG(LogTemp, Warning, TEXT("BLEAH!"));
+}
+
 // Called to bind functionality to input
 void AFPSZombie::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
@@ -278,6 +304,7 @@ void AFPSZombie::AttackWindow(float DeltaTime)
 
 bool AFPSZombie::Hurt_Implementation(float Damage, bool Headshot)
 {
+	HurtNoiseEvent();
 	if (Headshot) {
 		HP -= Damage*1.9;
 	}else{
@@ -286,8 +313,10 @@ bool AFPSZombie::Hurt_Implementation(float Damage, bool Headshot)
 
 	if (HP <= 0) 
 	{
+		DieEvent();
+
 		ZombieStateTarget = ZombieStateEnum::VE_Dead;
-		return true;
+		return true;	
 	}
 
 	if (ZombieState == ZombieStateEnum::VE_Walking && FMath::RandRange(0.0f, 1.0f) > WalkToRunChance) {
@@ -301,12 +330,17 @@ bool AFPSZombie::Hurt_Implementation(float Damage, bool Headshot)
 	return false;
 }
 
-bool AFPSZombie::Die_Implementation()
+bool AFPSZombie::Die()
 {
 	ZombieManagerReference->ZombieList.Remove(this);
 	ZombieManagerReference->CurrentWaveCount--;
 
 	Destroy();
 	return false;
+}
+
+void AFPSZombie::DieEvent_Implementation() {
+	// This is what happens if we don't create a bluleprint event
+	UE_LOG(LogTemp, Warning, TEXT("Zombie died."));
 }
 

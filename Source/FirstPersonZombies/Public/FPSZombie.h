@@ -40,6 +40,25 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
+	// This function behaves as an event. If this event has not been used in a blueprint, it will perform the EventName_Implementation code in the cpp file. 
+	// EventName_Implementation cannot be overridden, so in order to have different functionality in child classes, you must instead create and override an overridable function which is called by Interact_Implementation.
+	// If this event has been used in a blueprint, the actor will completely ignore the Interact_Implementation code and use the blueprint functionality instead.
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "Gameplay")
+	void IdleNoiseEvent(); // The name of our Event in unreal. The const parameter value appears as an input on the blueprint event.
+	void IdleNoiseEvent_Implementation(); // This must be declared in order for the Interact_Implementation to work properly
+
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "Gameplay")
+	void HurtNoiseEvent(); // The name of our Event in unreal. The const parameter value appears as an input on the blueprint event.
+	void HurtNoiseEvent_Implementation(); // This must be declared in order for the Interact_Implementation to work properly 
+
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "Gameplay")
+	void DieNoiseEvent(); // The name of our Event in unreal. The const parameter value appears as an input on the blueprint event.
+	void DieNoiseEvent_Implementation(); // This must be declared in order for the Interact_Implementation to work properly
+
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "Gameplay")
+	void AttackNoiseEvent(); // The name of our Event in unreal. The const parameter value appears as an input on the blueprint event.
+	void AttackNoiseEvent_Implementation(); // This must be declared in order for the Interact_Implementation to work properly
+
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
@@ -91,9 +110,12 @@ public:
 	bool Hurt(float Damage, bool Headshot);
 	bool Hurt_Implementation(float Damage, bool Headshot);
 
-	UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category = "Zombie")
+	UFUNCTION(Category = "Zombie")
 	bool Die();
-	bool Die_Implementation();
+
+	UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category = "Zombie")
+	void DieEvent();
+	void DieEvent_Implementation();
 
 	/** AnimMontage to play when we spawn */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Gameplay")
