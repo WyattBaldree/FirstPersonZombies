@@ -32,12 +32,25 @@ AFPSCharacter::AFPSCharacter()
 	FPSCameraComponent = CreateDefaultSubobject<UCameraComponent>(TEXT("FirstPersonCamera"));
 	// Attach the camera component to our capsule component.
 	FPSCameraComponent->SetupAttachment(GetCapsuleComponent());
-	// Set the offset to be approximately in the characters eyes
-	FPSCameraComponent->SetRelativeLocation(FVector(0, 0, BaseEyeHeight));
+	
 	//FPSCameraComponent->SetRelativeLocation(FVector(0, 0, 20 + BaseEyeHeight));
 	// Allow the controller to rotate our camera
 	FPSCameraComponent->bUsePawnControlRotation = true;
 	FPSCameraComponent->FieldOfView = PlayerFieldOfView;
+
+	// Set the offset to be approximately in the characters eyes
+	FVector CameraLocation;
+	FRotator CameraRotation;
+	GetActorEyesViewPoint(CameraLocation, CameraRotation);
+	FPSCameraComponent->SetWorldLocation(CameraLocation);
+
+	// Create a first person knife mesh component for the owning player.
+	KnifeMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("KnifeMesh"));
+
+	// Disable some environmental shadowing to preserve the illusion of having a single mesh.
+	KnifeMesh->bCastDynamicShadow = false;
+	KnifeMesh->CastShadow = false;
+	KnifeMesh->SetupAttachment(RootComponent);
 
 	// The collision profile of the object
 	UCapsuleComponent* Capsule = GetCapsuleComponent();
@@ -52,6 +65,8 @@ AFPSCharacter::AFPSCharacter()
 	// declare overlap events
 	InteractCapsuleComponent->OnComponentBeginOverlap.AddDynamic(this, &AFPSCharacter::OnOverlapBegin);
 	InteractCapsuleComponent->OnComponentEndOverlap.AddDynamic(this, &AFPSCharacter::OnOverlapEnd);
+
+
 
 	UE_LOG(LogTemp, Warning, TEXT("Num overlapping interactors: %i"), InteractableArray.Num());
 	
@@ -75,8 +90,11 @@ void AFPSCharacter::BeginPlay()
 		//GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Red, TEXT("We are using FPSCharacter."));
 	}
 
-	FPSCameraComponent->SetRelativeLocation(FVector(0, 0, BaseEyeHeight));
-	//FPSCameraComponent->SetRelativeLocation(FVector(0, 0, 20 + BaseEyeHeight));
+	// Set the offset to be approximately in the characters eyes
+	FVector CameraLocation;
+	FRotator CameraRotation;
+	GetActorEyesViewPoint(CameraLocation, CameraRotation);
+	FPSCameraComponent->SetWorldLocation(CameraLocation);
 
 	ScopeOpacityUpdateEvent(0);
 
@@ -103,6 +121,7 @@ void AFPSCharacter::BeginPlay()
 			//let add it to the view port
 			MyHud->AddToViewport();
 		}
+		CashUpdateEvent(Cash);
 	}
 }
 
@@ -110,7 +129,24 @@ void AFPSCharacter::BeginPlay()
 void AFPSCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+	if (UpdateEyes){
+		FVector CameraLocation;
+		FRotator CameraRotation;
+		GetActorEyesViewPoint(CameraLocation, CameraRotation);
+		FPSCameraComponent->SetWorldLocation(CameraLocation);
+
+		UpdateEyes = false;
+	}
+
+	if (Knifing) {
+		KnifeTime_Current -= DeltaTime;
+		if (KnifeTime_Current <= 0) {
+			Knifing = false;
+		}
+	}
 	
+		//SetLocation(CameraLocation);
+
 	if (Dequiping) {
 		if (HeldWeapon) {
 			EquipAmount += HeldWeapon->DequipSpeed * DeltaTime;
@@ -136,6 +172,7 @@ void AFPSCharacter::Tick(float DeltaTime)
 
 
 	GEngine->AddOnScreenDebugMessage(13, 5.0f, FColor::Blue, TEXT("EquipAmount: ") + FString::SanitizeFloat(EquipAmount));
+	GEngine->AddOnScreenDebugMessage(14, 5.0f, FColor::Blue, (Knifing) ? TEXT("TRUE") : TEXT("FALSE"));
 
 	if (HeldWeapon) {
 		// If we are currently aiming, increase AimDownSightsAmount until it reaches 1
@@ -400,6 +437,8 @@ void AFPSCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompon
 
 	PlayerInputComponent->BindAction("Crouch", IE_Pressed, this, &AFPSCharacter::CrouchStart);
 	PlayerInputComponent->BindAction("Crouch", IE_Released, this, &AFPSCharacter::CrouchStop);
+
+	PlayerInputComponent->BindAction("Knife", IE_Pressed, this, &AFPSCharacter::Knife);
 }
 
 void AFPSCharacter::CashUpdateEvent_Implementation(int NewValue)
@@ -503,6 +542,7 @@ void AFPSCharacter::CrouchStart()
 	if (CanCrouch())
 	{
 		GetCharacterMovement()->bWantsToCrouch = true;
+		UpdateEyes = false;
 	}
 }
 
@@ -510,6 +550,7 @@ void AFPSCharacter::CrouchStop()
 {
 	GEngine->AddOnScreenDebugMessage(15, 10.0f, FColor::Blue, TEXT("CrouchEnd"));
 	GetCharacterMovement()->bWantsToCrouch = false;
+	UpdateEyes = false;
 }
 
 void AFPSCharacter::DebugWyatt()
@@ -517,8 +558,15 @@ void AFPSCharacter::DebugWyatt()
 
 }
 
+void AFPSCharacter::Knife()
+{
+	Knifing = true;
+	KnifeTime_Current = KnifeTime;
+}
+
 void AFPSCharacter::OnOverlapBegin(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
+	if(overlapped)
 	if (OtherActor && (OtherActor != this) && OtherComp) {
 		if (OtherActor->IsA(AInteractableActor::StaticClass())) {
 			InteractableArray.Add((AInteractableActor*)OtherActor);
@@ -529,6 +577,7 @@ void AFPSCharacter::OnOverlapBegin(class UPrimitiveComponent* OverlappedComp, cl
 
 void AFPSCharacter::OnOverlapEnd(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
+
 	if (OtherActor && (OtherActor != this) && OtherComp) {
 		if (OtherActor->IsA(AInteractableActor::StaticClass())) {
 			InteractableArray.Remove((AInteractableActor*)OtherActor);

@@ -23,6 +23,8 @@ class FIRSTPERSONZOMBIES_API AFPSCharacter : public ACharacter
 	GENERATED_BODY()
 
 private:
+	bool UpdateEyes = false;
+
 public:
 	// Sets default values for this character's properties
 	AFPSCharacter();
@@ -68,6 +70,29 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Gameplay")
 	AZombieSpawner* DebugZombieSpawner;
 
+	////////////////////////////////////////////////////////////////////////////////////////////// Knifing
+
+	// The knife mesh
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Gameplay")
+	USkeletalMeshComponent* KnifeMesh;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Gameplay")
+	TArray<AActor*> KnifeArray;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Gameplay")
+	USphereComponent* KnifeCollisionSphere;
+
+	UFUNCTION()
+	void Knife();
+
+	UPROPERTY(BlueprintReadWrite, Category = "Gameplay")
+	bool Knifing = false;
+
+	UPROPERTY(BlueprintReadWrite, Category = "Gameplay")
+	float KnifeTime = 1.5;
+
+	UPROPERTY(BlueprintReadWrite, Category = "Gameplay")
+	float KnifeTime_Current = KnifeTime;
 	////////////////////////////////////////////////////////////////////////////////////////////// Interactable
 	UPROPERTY(BlueprintReadOnly, Category = "Gameplay")
 	TArray<AInteractableActor*> InteractableArray;
